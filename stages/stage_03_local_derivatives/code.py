@@ -52,24 +52,37 @@ class Value(Stage2_Value):
 
     def __add__(self, other: "Value | Number") -> "Value":
         """self + other; install _backward: a.grad += out.grad; b.grad += out.grad."""
-        # TODO: coerce other to Value; out = super().__add__(other) (builds the '+'
-        # node); define _backward() doing self.grad += out.grad; other.grad += out.grad;
-        # set out._backward = _backward; return out
-        raise NotImplementedError("stage_03: implement __add__ + its _backward")
+        other = other if isinstance(other, Value) else Value(other)
+        out = super().__add__(other)
+
+        def _backward():
+            self.grad += out.grad
+            other.grad += out.grad
+
+        out._backward = _backward
+        return out
 
     def __mul__(self, other: "Value | Number") -> "Value":
         """self * other; install _backward: a.grad += b*out.grad; b.grad += a*out.grad."""
-        # TODO: coerce other to Value; out = super().__mul__(other) (builds the '*'
-        # node); define _backward() doing self.grad += other.data * out.grad;
-        # other.grad += self.data * out.grad; set out._backward; return out
-        raise NotImplementedError("stage_03: implement __mul__ + its _backward")
+        other = other if isinstance(other, Value) else Value(other)
+        out = super().__mul__(other)
+
+        def _backward():
+            self.grad += out.grad * other.data
+            other.grad += out.grad * self.data
+
+        out._backward = _backward
+        return out
 
     def __pow__(self, c: Number) -> "Value":
         """self ** c (c a constant int/float); install _backward: a.grad += c*a**(c-1)*out.grad."""
-        # TODO: out = super().__pow__(c) (asserts c is int/float and builds the node);
-        # define _backward() doing self.grad += (c * self.data ** (c - 1)) * out.grad;
-        # set out._backward; return out
-        raise NotImplementedError("stage_03: implement __pow__ + its _backward")
+        out = super().__pow__(c)
+
+        def _backward():
+            self.grad += out.grad * c * (self.data ** (c - 1.0))
+
+        out._backward = _backward
+        return out
 
     # __neg__ / __sub__ / __rsub__ / __truediv__ / __rtruediv__ are INHERITED from
     # stage_01 and compose out of __add__/__mul__/__pow__ above, so their gradients
@@ -77,5 +90,4 @@ class Value(Stage2_Value):
 
     def __repr__(self) -> str:
         """e.g. ``Value(data=3.0, grad=0.0)`` (grad still 0 until stage_04 backward)."""
-        # TODO: return f"Value(data={self.data}, grad={self.grad})"
-        raise NotImplementedError("stage_03: implement __repr__")
+        return f"Value(data={self.data}, grad={self.grad})"
