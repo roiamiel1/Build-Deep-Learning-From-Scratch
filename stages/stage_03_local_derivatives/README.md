@@ -6,7 +6,7 @@
 $$z = a + b \;\Rightarrow\; \frac{\partial z}{\partial a} = 1,\quad \frac{\partial z}{\partial b} = 1$$
 $$z = a \cdot b \;\Rightarrow\; \frac{\partial z}{\partial a} = b,\quad \frac{\partial z}{\partial b} = a$$
 $$z = a / b \;\Rightarrow\; \frac{\partial z}{\partial a} = \frac{1}{b},\quad \frac{\partial z}{\partial b} = -\frac{a}{b^{2}}$$
-Note division is *not* symmetric, and every local derivative is evaluated at the stored forward values of `a` and `b` — that is why stage_02 kept the values around. Also handle the unary negation $z = -a \Rightarrow \partial z/\partial a = 1\cdot(-1) = -1$ and subtraction $z = a - b \Rightarrow (1, -1)$, since they reduce to add/mul. Local derivatives are purely *local*: they ignore the rest of the graph, which is exactly what makes the chain rule modular.
+Note division is *not* symmetric, and every local derivative is evaluated at the stored forward values of `a` and `b` — that is why stage_02 kept the values around (and why it stored the operand-ordered `_inputs` tuple, not just the unordered `_prev` set: for `/` you must know which input is the numerator). Also handle the unary negation $z = -a \Rightarrow \partial z/\partial a = 1\cdot(-1) = -1$ and subtraction $z = a - b \Rightarrow (1, -1)$, since they reduce to add/mul. Local derivatives are purely *local*: they ignore the rest of the graph, which is exactly what makes the chain rule modular.
 
 **Watch**
 - [The Chain Rule (Backpropagation calculus)](https://www.youtube.com/watch?v=tIeHLnjs5U8) — 3Blue1Brown: how local derivatives chain edge-by-edge through a graph.
@@ -20,7 +20,7 @@ Note division is *not* symmetric, and every local derivative is evaluated at the
 - `d_mul(a, b) -> tuple[float, float]` returns `(b, a)`.
 - `d_div(a, b) -> tuple[float, float]` returns `(1/b, -a/b**2)`; raise `ZeroDivisionError` if `b == 0`.
 - `d_neg(a) -> tuple[float]` returns `(-1.0,)`.
-- `local_derivatives(node) -> tuple[float, ...]` — the dispatcher: read `node._op` (the stage_02 `Value` op label), pull each input's stored forward value (`.data`), call the matching `d_*`, and return the tuple of local derivatives in operand order. Constant/leaf nodes (op `""`) return `()`.
+- `local_derivatives(node) -> tuple[float, ...]` — the dispatcher: read `node._op` (the stage_02 `Value` op label), take the operand-ordered parents from `node._inputs` (stage_02 keeps that tuple precisely because `_prev` is an unordered set and `-`/`/` need left vs. right), pull each input's stored forward value (`.data`), call the matching `d_*`, and return the tuple of local derivatives in operand order. Constant/leaf nodes (op `""`) return `()`.
 - Inputs are Python floats (or the forward values held by `Value`s); outputs are plain `float`s in a tuple, one per input, in input order.
 - Allowed: Python stdlib only. No NumPy needed; no autodiff libraries.
 - Acceptance: each `d_*` matches its hand-derived rule, `local_derivatives` dispatches correctly for `+ - * / neg` and returns `()` for leaves, and every analytical partial agrees with a central-difference estimate.

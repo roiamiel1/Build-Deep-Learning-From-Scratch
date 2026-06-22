@@ -54,9 +54,11 @@ def _input_value(inp) -> float:
 def _ordered_inputs(node) -> tuple:
     """Return ``node``'s parent inputs in operand order; () for a leaf/constant.
 
-    Order matters for asymmetric ops ('-', '/'); recover it from your stage_02 Value.
+    Order matters for asymmetric ops ('-', '/'). stage_02's ``Value`` keeps the
+    operand-ordered tuple in ``_inputs`` (``_prev`` is an unordered set), so read
+    ``node._inputs``.
     """
-    raise NotImplementedError  # TODO: implement recovering operand-ordered parents
+    raise NotImplementedError  # TODO: return node._inputs (the operand-ordered parents)
 
 
 def local_derivatives(node) -> tuple[float, ...]:
