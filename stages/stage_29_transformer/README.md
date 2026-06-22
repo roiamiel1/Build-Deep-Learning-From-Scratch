@@ -1,4 +1,4 @@
-# Stage 30: Transformer block
+# Stage 29: Transformer block
 
 **Imports & adds** — imports `MultiHeadAttention` (stage_28), `MLP` (stage_11), and `Tensor` (stage_08) via `dlfs.stage_import`; adds hand-derived `LayerNorm` (+backward), residual wiring, and `TransformerBlock` (pre/post-norm) on top — attention/FFN are reused, not rewritten.
 

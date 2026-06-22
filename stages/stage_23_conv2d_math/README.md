@@ -1,4 +1,4 @@
-# Stage 24: Convolution mathematics
+# Stage 23: Convolution mathematics
 
 **Context** — Before coding a fast `Conv2d` layer in the next stage, you derive the math on
 paper and in shape helpers. This is the convolution analogue of `stage_07`, where you learned

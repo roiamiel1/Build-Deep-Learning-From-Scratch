@@ -1,4 +1,4 @@
-# Stage 14: SGD optimizer
+# Stage 13: SGD optimizer
 
 **Imports + adds** — Imports `Tensor` from `stage_08` (via `dlfs.stage_import`) and uses it unchanged; ADDS a new `Optimizer` base class + `SGD` subclass — the optimizer contract later stages (momentum/Adam in `stage_17`) extend.
 

@@ -1,4 +1,4 @@
-# Stage 20: DataLoader
+# Stage 19: DataLoader
 
 **Context** — In `stage_18` you wrote `iterate_minibatches`, a one-shot generator
 that shuffled and chopped `(X, y)` into batches. That works, but every real framework

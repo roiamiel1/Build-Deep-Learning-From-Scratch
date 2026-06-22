@@ -1,4 +1,4 @@
-# Stage 17: Momentum
+# Stage 16: Momentum
 
 **Context** — In `stage_13` you built plain `SGD`, which steps each parameter straight down the local gradient: `p -= lr * p.grad`. On ravines, badly-scaled or noisy loss surfaces this zig-zags and crawls. This stage adds **momentum** — a velocity buffer that accumulates an exponential moving average of past gradients — and its **Nesterov** variant, then has you measure the convergence speed-up. This is the first of the "smarter optimizer" stages that culminate in RMSProp/Adam later.
 

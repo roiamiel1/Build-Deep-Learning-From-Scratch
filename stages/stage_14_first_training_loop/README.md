@@ -1,4 +1,4 @@
-# Stage 15: First training loop
+# Stage 14: First training loop
 
 **Context** — Every prior stage built one piece in isolation: the `Tensor` engine with matmul/activations (`stage_08`), broadcasting backward (`stage_11`), loss functions + `sum`/`mean` reductions (`stage_12`), and the `SGD` optimizer (`stage_13`). Now you wire them into the canonical loop that actually *learns*: build an MLP, push a batch forward to a scalar loss, call `.backward()`, take a gradient-descent step, zero the grads, repeat. By the end you train a classifier on a non-linearly-separable toy dataset (moons or spiral) and watch the loss curve fall.
 

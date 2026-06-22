@@ -1,4 +1,4 @@
-# Stage 11: Dense/Linear layer
+# Stage 10: Dense/Linear layer
 
 **Context** — In `stage_09` you built a single `Neuron` (`y = phi(x @ w + b)`) on top of the autodiff `Tensor` from `stage_08`. A `Neuron` produces one output. A *dense* (a.k.a. fully-connected / linear) layer produces `n_out` outputs at once by stacking `n_out` neurons that share the same input — exactly the `nn.Linear` building block. This is the workhorse layer of every MLP, and later the projections inside attention.
 

@@ -1,4 +1,4 @@
-# Stage 16: Weight initialization
+# Stage 15: Weight initialization
 
 **Context** — You can now stack `Dense` layers from `stage_10` and pass signals
 through the activations from `stage_14`. But *how* you fill the weight matrices

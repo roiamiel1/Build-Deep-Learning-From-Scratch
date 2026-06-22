@@ -1,4 +1,4 @@
-# Stage 25: Conv2D implementation
+# Stage 24: Conv2D implementation
 
 **Context** — `stage_23` motivated convolution as the right inductive bias for images (local, weight-shared filters) and sketched the naive sliding-window forward. This stage makes it real and fast: a full `Conv2D` layer with forward **and** backward, plus max/avg **pooling**, all built on the `Tensor` autodiff engine from `stage_08`. The trick is **im2col** — unfold every receptive field into a column so the whole convolution becomes one big matrix multiply, reusing the matmul machinery you already trust.
 

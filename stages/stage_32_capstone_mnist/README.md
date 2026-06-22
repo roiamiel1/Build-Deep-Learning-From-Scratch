@@ -1,4 +1,4 @@
-# Stage 33: Capstone — MNIST
+# Stage 32: Capstone — MNIST
 
 **Imports** the whole `stage_31` `mytorch` API (`Module`/`Sequential`/`Linear`/`ReLU`/`CrossEntropyLoss`/`Adam`/`DataLoader`/`Dataset`/`Tensor`) via `dlfs.stage_import`; **adds** the MNIST IDX loader, preprocessing, a `Sequential(Linear, ReLU, Linear)` `784→128→10` MLP builder, and an end-to-end train/evaluate capstone script (with a synthetic-digit fallback).
 

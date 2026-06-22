@@ -1,4 +1,4 @@
-# Stage 34: Capstone — CIFAR-10
+# Stage 33: Capstone — CIFAR-10
 
 **Imports** the stage_31 `mytorch` API (`Tensor`/`cross_entropy_loss`/`Adam`/`DataLoader`) + `Conv2D`/`MaxPool2D`/`Flatten` (stage_24) + `Dense` (stage_10) via `dlfs.stage_import`; **adds** `BatchNorm2d`, augmentation, LR schedules, `ConvNet`, and the CIFAR-10 load + train script.
 

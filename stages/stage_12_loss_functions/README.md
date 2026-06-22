@@ -1,4 +1,4 @@
-# Stage 13: Loss functions
+# Stage 12: Loss functions
 
 **Context** — A model produces predictions; a *loss* turns the gap between predictions and targets
 into a single scalar to descend. This stage builds the three workhorse losses — **MSE**, **MAE**, and

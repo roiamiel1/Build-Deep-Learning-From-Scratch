@@ -1,4 +1,4 @@
-# Stage 31: Vision Transformer
+# Stage 30: Vision Transformer
 
 *Imports* `im2col`/`col2im` (`stage_24`) and `TransformerBlock`/`LayerNorm` (`stage_29`) via `dlfs.stage_import`; *adds* patch embedding, a learnable class token + positional embeddings, and a `ViT` model stacking the imported blocks with a linear classifier head.
 

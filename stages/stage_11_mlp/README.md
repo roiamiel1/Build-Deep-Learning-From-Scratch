@@ -1,4 +1,4 @@
-# Stage 12: MLP
+# Stage 11: MLP
 
 **Context** — You have a single `Neuron` from `stage_09` and a vector-valued `Dense` layer from `stage_10` — a *pure linear* map `Z = X @ W + b` (no activation), riding on the `Tensor` autodiff engine from `stage_08`. This stage stacks several `Dense` layers and inserts the nonlinearity *between* them to form a **multilayer perceptron (MLP)** with one clean `forward()`. This is the first *deep* network in the curriculum and the workhorse you will train in `stage_16` and reuse as the feed-forward block inside Transformers (`stage_30`).
 

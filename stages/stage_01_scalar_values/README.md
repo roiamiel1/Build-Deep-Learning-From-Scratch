@@ -1,8 +1,10 @@
 # Stage 01: Scalar values & arithmetic
 
-**Cumulative chain** — This is the ORIGIN stage: it imports nothing from earlier stages (there are none). It exports the base `Value`, which every later stage extends via `dlfs.stage_import` — stage 02 subclasses it to add the computational graph (`_prev`/`_op`), stage 05 subclasses again to add `.backward()`.
+**Cumulative chain** — This is the ORIGIN stage: it imports nothing from earlier stages (there are none). It exports the base `Value`, which every later stage extends via `dlfs.stage_import` — stage 02 adds the computational graph (`_prev`/`_op` + a no-op `_backward` hook), stage 03 installs the per-op `_backward` closures, and stage 04 adds the `.backward()` reverse pass.
 
-**Context** — This is the first stage of the whole curriculum and the seed of the autodiff engine you will build. You wrap a single floating-point number in a `Value` object and teach it to do arithmetic (`+`, `-`, `*`, `/`) through Python operator overloading. There are **no gradients yet** — that machinery (`.backward()` filling `grad`) arrives in stage 05, and there is **no computational graph yet** — that arrives in stage 02. Here you only build the object and the forward math, plus the conceptual foundation of variables, functions, and derivatives.
+**Context** — This is the first stage of the whole curriculum and the seed of the autodiff engine you will build. You wrap a single floating-point number in a `Value` object and teach it to do arithmetic (`+`, `-`, `*`, `/`) through Python operator overloading. There are **no gradients yet** — that machinery (`.backward()` filling `grad`) arrives in stage 04, and there is **no computational graph yet** — that arrives in stage 02. Here you only build the object and the forward math, plus the conceptual foundation of variables, functions, and derivatives.
+
+Stages 01-05 reimplement Andrej Karpathy's [micrograd](https://github.com/karpathy/micrograd) `Value` engine from scratch, one concept per stage; this stage is the `Value(data)` starting point.
 
 **Background** — A neural network is just one enormous differentiable function built by composing tiny operations. To differentiate it automatically, we first need a data type we control at every step, instead of bare Python floats. A `Value` stores one number in `self.data`. Overloading `__add__`, `__mul__`, etc. lets `a + b` and `a * b` return *new* `Value`s, so expressions like `d = a * b + c` compose into the forward computation. The next stage (02) will subclass this `Value` to also record the operands and operation of each result — the skeleton of the computational graph — but here the result is just the number. The derivative is the foundation: for a function $f$, the derivative measures sensitivity of the output to a tiny change in an input,
 
@@ -16,7 +18,7 @@ $$
 f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 $$
 
-You will *not* derive analytic gradients in this stage — you only verify, numerically, that derivatives of your `Value` expressions exist and behave (e.g. $\frac{d}{da}(a b) = b$). Everything later (the computational graph in stage 02, the `Value` autodiff engine in stage 05) builds on the class and forward ops you write here.
+You will *not* derive analytic gradients in this stage — you only verify, numerically, that derivatives of your `Value` expressions exist and behave (e.g. $\frac{d}{da}(a b) = b$). Everything later (the computational graph in stage 02, the `.backward()` autodiff engine completed by stage 04) builds on the class and forward ops you write here.
 
 **Watch**
 
@@ -35,7 +37,7 @@ You will *not* derive analytic gradients in this stage — you only verify, nume
   - `__truediv__(self, other)` → implement as `self * other ** -1`
   - `__pow__(self, exponent)` → `self.data ** exponent`, where `exponent` is a Python `int`/`float` (not a `Value`)
 - Support mixing with plain numbers (e.g. `2 * a`, `a + 1`, `a - 3`): wrap a non-`Value` operand in `Value`, and define the reflected ops `__radd__`, `__rmul__`, `__rsub__`, `__rtruediv__`.
-- Allowed tools: Python stdlib only. **No** NumPy, no autodiff libraries. Do not add a `.backward()`, do not record a graph (`_prev`/`_op`), and do not compute any gradient — those arrive in stages 02 and 06.
+- Allowed tools: Python stdlib only. **No** NumPy, no autodiff libraries. Do not add a `.backward()`, do not record a graph (`_prev`/`_op`), and do not compute any gradient — those arrive in stages 02-04.
 - Acceptance: arithmetic on `Value`s matches the same arithmetic on raw floats; operations with ints/floats on either side work.
 
 **Done when**

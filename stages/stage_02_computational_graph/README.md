@@ -1,4 +1,4 @@
-# Stage 2: Computational graph
+# Stage 02: Computational graph
 
 **Context** — In `stage_01` you built `Value`, a thin wrapper around a single scalar that supports `+` and `*`. Right now a `Value` knows only its own number — once an operation produces a result, the inputs that created it are forgotten. This stage makes every operation *record* where its result came from, so a chain of operations forms a directed acyclic graph (DAG). That recorded graph is the skeleton that automatic differentiation (stage 04+) will walk backward over.
 

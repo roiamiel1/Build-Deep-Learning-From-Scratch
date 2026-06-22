@@ -1,4 +1,4 @@
-# Stage 28: Self-Attention
+# Stage 27: Self-Attention
 
 > Imports `Tensor` (`stage_08`) and references `softmax`/`cross_entropy_loss` (`stage_12`); adds single-head scaled dot-product self-attention (Q/K/V projections, stable row-wise softmax, weighted sum) plus the `causal_mask` helper.
 

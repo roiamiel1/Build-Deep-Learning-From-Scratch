@@ -1,4 +1,4 @@
-# Stage 22: Dropout
+# Stage 21: Dropout
 
 **Context** — A regularizer that fights overfitting by randomly *dropping* units during training, forcing the network to spread its representation across many features instead of co-adapting a few. This is the second train/eval-mode layer in the curriculum, after the normalization layer in `stage_20`: like it, `Dropout` behaves differently in `train` vs `eval` mode and plugs into the `MLP` from `stage_11` between its `Dense` layers. You build it on the autodiff `Tensor` from `stage_08`, so backprop through the mask is automatic.
 

@@ -1,4 +1,4 @@
-# Stage 26: CNN classifier
+# Stage 25: CNN classifier
 
 **Imports** `Tensor` (stage_08), `Dense` (stage_10), `cross_entropy_loss` (stage_12), `Adam` (stage_17), `DataLoader`/`Dataset` (stage_19), `Conv2D`/`MaxPool2D`/`Flatten` (stage_24) — **adds** a `CNN` that composes the conv tower + dense head and a `train_cnn` train/eval loop (plus `accuracy` and a synthetic `make_digit_blobs` set). No new gradient math.
 

@@ -1,4 +1,4 @@
-# Stage 7: Vector operations
+# Stage 06: Vector operations
 
 **Builds on** — imports the finished `Value` from `stage_05` via
 `dlfs.stage_import` (it already provides `+`, `*`, `tanh`, `relu`,

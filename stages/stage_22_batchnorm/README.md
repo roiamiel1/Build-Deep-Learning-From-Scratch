@@ -1,4 +1,4 @@
-# Stage 23: Batch Normalization
+# Stage 22: Batch Normalization
 
 **Context** — Good `He`/`Xavier` init from `stage_15` only fixes the *starting*
 activation statistics; once weights move during training the per-layer

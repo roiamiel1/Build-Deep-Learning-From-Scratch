@@ -1,8 +1,8 @@
-# Stage 09: Tensor engine
+# Stage 08: Tensor engine
 
-**Context** — This is THE core engine of the whole course. So far (stages 06-08) you built a
-scalar autodiff engine (`Value` from stage_05) and wired thousands of scalars into a neuron, layer,
-and MLP (stage_07). Scalar graphs are correct but absurdly slow. Here you collapse the same
+**Context** — This is THE core engine of the whole course. So far you built a
+scalar autodiff engine (`Value`, stages 01-05) and wired thousands of scalars into vectors and
+matrices (`Vec` stage_06, `Mat` stage_07). Scalar graphs are correct but absurdly slow. Here you collapse the same
 reverse-mode autodiff idea onto a single class — `Tensor` — that stores an N-dimensional NumPy array
 and tracks one gradient array per node. Every later stage (layers, optimizers, CNNs, Transformers)
 imports this `Tensor`.
@@ -36,7 +36,7 @@ Defer general broadcasting gradient reduction to stage_11 and reductions (`sum`/
 
 **Cumulative chain** — This is the one new *core* the curriculum adds: no earlier stage defines a
 `Tensor`, so it is written fresh (not subclassed). Why the abstraction changes here: the scalar
-`Value`/`Vec`/`Mat` graphs from stages 06-08 are one node *per number* — correct but unusably slow —
+`Value`/`Vec`/`Mat` graphs from stages 01-07 are one node *per number* — correct but unusably slow —
 so we collapse the identical reverse-mode rule onto one NumPy array (and one gradient array) per node.
 `code.py` still imports the scalar engine via `Stage5_Value = stage_import("stage_05", "Value")` and
 bridges it in via `Tensor.from_value(v)` (lifts a scalar `Value` to a 0-d `Tensor` leaf), making the unification literal

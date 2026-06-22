@@ -1,4 +1,4 @@
-# Stage 8: Matrix operations
+# Stage 07: Matrix operations
 
 **Context** — In `stage_06` you built `Vec`, a vector of `Value` scalars whose key
 reduction is the dot product. A neuron is one dot product; a layer is *many* dot products,

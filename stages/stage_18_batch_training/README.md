@@ -1,4 +1,4 @@
-# Stage 19: Mini-batch training
+# Stage 18: Mini-batch training
 
 **Context** — In `stage_14` you trained with *full-batch* gradient descent: every epoch the whole dataset went through one forward/backward/step. Real training almost never does that — datasets are too big, and full-batch updates are slow and over-smooth. This stage splits the data into **mini-batches**, runs the same forward/`backward()`/`step()`/`zero_grad()` cycle once per batch, and lets you watch the three-way trade-off between **batch size**, **gradient noise**, and **throughput**. You reuse `MLP`, `mse_loss`, `SGD`, `make_moons`/`make_spiral`, and `accuracy` from `stage_14` unchanged.
 

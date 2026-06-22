@@ -1,4 +1,4 @@
-# Stage 3: Local derivatives as `_backward` closures
+# Stage 03: Local derivatives as `_backward` closures
 
 **Context** — In stage_02 you built a *computational graph*: every result `Value` remembers its op (`_op`), its parents (`_prev`), and reserves a no-op `_backward` hook. This stage fills that hook in. For every op you install a small **closure** on the result node that, given the output's gradient, pushes the *local* derivative onto each input's `grad`. This is the per-edge half of backprop. There is still **no** global pass that runs the closures in order — that is stage_04's `backward()`. Here you only make each edge know how to push gradient one step.
 

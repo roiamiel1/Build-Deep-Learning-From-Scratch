@@ -1,4 +1,4 @@
-# Stage 18: Adam optimizer
+# Stage 17: Adam optimizer
 
 **Context** — In `stage_16` you wrote a training loop that, each step, runs forward, calls `Tensor.backward()` (the `stage_08` engine), then nudges every parameter by plain SGD: `p.data -= lr * p.grad`. That works but is slow and fiddly: one global learning rate, no memory of past gradients. This stage builds **Adam** (Adaptive Moment Estimation), the default optimizer for almost every modern net, by composing two ideas — **momentum** (a velocity that smooths the gradient) and **RMSProp** (a per-parameter adaptive step from the gradient's running magnitude). You implement them as plain NumPy update rules over the parameter `Tensor`s produced by `parameters()` (from `Dense`/`MLP`, stages 11–12).
 

@@ -1,4 +1,4 @@
-# Stage 35: Capstone — tiny Transformer (char-level LM)
+# Stage 34: Capstone — tiny Transformer (char-level LM)
 
 **Context** — The finale. You have a working framework: the `mytorch` surface from
 `stage_31` (`Module`, `Parameter`, `Linear`, `Sequential`, `CrossEntropyLoss`, `Adam`,

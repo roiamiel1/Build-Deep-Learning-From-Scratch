@@ -1,4 +1,4 @@
-# Stage 32: Framework refactor (mytorch)
+# Stage 31: Framework refactor (mytorch)
 
 **Imports** `Tensor` (s09), `Dense` (s11), `cross_entropy_loss`/`mse_loss` (s13), `SGD` (s14), `Adam` (s18), `DataLoader`/`Dataset` (s20) via `dlfs.stage_import`; **adds** the `Module`/`Parameter` object layer, `Sequential`, `Linear` (wraps `Dense`), `ReLU`, and the `CrossEntropyLoss`/`MSELoss` loss `Module`s — the consolidated `mytorch` public API.
 

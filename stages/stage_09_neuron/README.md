@@ -1,4 +1,4 @@
-# Stage 10: Neuron
+# Stage 09: Neuron
 
 **Context** — You have a working N-dimensional autodiff `Tensor` from `stage_08` (with `.data`, `.grad`, `.backward()`, and ops like `+`, `*`, `@`/matmul, `tanh`, `relu`). This stage assembles the first *learnable unit*: a single artificial neuron that computes a weighted sum of its inputs, adds a bias, and squashes the result through a nonlinearity. It is the atom every layer, MLP, CNN, and Transformer in later stages is built from.
 

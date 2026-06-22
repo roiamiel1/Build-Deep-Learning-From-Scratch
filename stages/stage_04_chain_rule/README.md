@@ -1,4 +1,4 @@
-# Stage 4: The backward pass (chain rule, automated)
+# Stage 04: The backward pass (chain rule, automated)
 
 **Context** — stage_03 gave every result node a `_backward` closure that pushes the local derivative one edge. A single closure only knows its own op. This stage adds the **global** reverse pass — `backward()` — that runs all the closures in the right order so gradient flows from the output all the way to every leaf. After `loss.backward()`, each node's `.grad` holds `d(loss)/d(node)`. That is reverse-mode automatic differentiation, complete for scalars: the exact `Value.backward` from micrograd, reused unchanged by every later stage.
 

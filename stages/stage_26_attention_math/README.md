@@ -1,4 +1,4 @@
-# Stage 27: Attention mathematics
+# Stage 26: Attention mathematics
 
 **Context** — Before wiring a real attention *layer* (next stages), you derive scaled
 dot-product attention on paper and as pure NumPy reference functions — the attention analogue of

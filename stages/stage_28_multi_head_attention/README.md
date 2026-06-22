@@ -1,4 +1,4 @@
-# Stage 29: Multi-Head Attention
+# Stage 28: Multi-Head Attention
 
 Imports `Tensor` (`stage_08`) and the single-head `SelfAttention` + `causal_mask` (`stage_27`); adds `MultiHeadAttention` (alias `MHA`) that holds `h` `SelfAttention` heads of width `d_k = d_model // h`, concatenates their outputs, and applies a learned `W_o` projection. No attention math is rewritten — every gradient flows through `Tensor.backward()`.
 

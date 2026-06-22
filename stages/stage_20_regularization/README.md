@@ -1,4 +1,4 @@
-# Stage 21: L1 & L2 regularization
+# Stage 20: L1 & L2 regularization
 
 **Context** — Models with many parameters overfit: they drive the *training* loss to zero by memorizing noise, then generalize badly. **Regularization** fights this by adding a penalty on the weights to the loss, biasing the optimizer toward simpler (smaller-norm) solutions. This stage builds the two classic penalties — **L2 (ridge / weight decay)** and **L1 (lasso, sparsity-inducing)** — as `Tensor` functions on top of the losses from `stage_12`, and connects L2 to the **weight-decay** term you already wrote into the optimizers in `stage_17`.
 
