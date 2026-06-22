@@ -42,9 +42,10 @@ class Value(Stage3_Value):
 
         Does not zero grads first; callers zero between passes if needed.
         """
-        # TODO: topo = topo_sort(self); self.grad = 1.0;
-        # for v in reversed(topo): v._backward()
-        raise NotImplementedError("stage_04: implement backward()")
+        topo = topo_sort(self)
+        self.grad = 1.0
+        for v in reversed(topo): 
+            v._backward()
 
 
 def topo_sort(root: "Value") -> List["Value"]:
@@ -58,9 +59,11 @@ def topo_sort(root: "Value") -> List["Value"]:
     visited: Set["Value"] = set()
 
     def build(v: "Value") -> None:
-        # TODO: if v not in visited: add v; recurse into each child in v._prev;
-        # then append v to order (post-order)
-        raise NotImplementedError("stage_04: implement the DFS post-order build")
+        if v not in visited:
+            visited.add(v)
+            for child in v._prev:
+                build(child)
+            order.append(v)
 
-    # TODO: build(root); return order
-    raise NotImplementedError("stage_04: implement topo_sort")
+    build(root)
+    return order

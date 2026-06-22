@@ -68,5 +68,4 @@ def trace(root):
         edges = edges.union(n_edges)
         edges.add((n, root))
 
-
     return nodes, edges
