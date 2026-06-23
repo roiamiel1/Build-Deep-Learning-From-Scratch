@@ -8,9 +8,7 @@ engine, so we reduce to a scalar `Value` (`sum`/`mean`) and call `.backward()`.
 Gradients are verified against numerical central differences:
     df/dx ~= (f(x+eps) - f(x-eps)) / (2*eps).
 """
-import os as _os
-import sys as _sys
-
+import importlib.util
 import os
 import random
 import sys
@@ -18,24 +16,24 @@ import sys
 import numpy as np
 import pytest
 
-# Ensure this stage's directory is importable so `from code import ...` works
-# regardless of how pytest is launched. `code.py` itself pulls `Value` (stage_05)
-# and `Vec` (stage_06) in via dlfs.stage_import and builds `Mat` on top of them.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# This stage's ``code.py`` pulls `Value` (stage_05) and `Vec` (stage_06) in via
+# ``dlfs.stage_import`` and builds `Mat` on top, so the curriculum root (which
+# holds the ``dlfs`` package) must be importable.
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.dirname(_THIS_DIR)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
 
-# --- resolve sibling code.py (avoid stdlib `code` collision) ---
-import importlib.util as _ilu
-_THIS_DIR = _os.path.dirname(_os.path.abspath(__file__))
-_ROOT = _os.path.dirname(_THIS_DIR)
-if _ROOT not in _sys.path:
-    _sys.path.insert(0, _ROOT)
-_spec = _ilu.spec_from_file_location(
-    "code", _os.path.join(_THIS_DIR, "code.py")
+# Load this stage's ``code.py`` by file path under a UNIQUE module name. A plain
+# ``from code import ...`` (or registering it as ``code`` in sys.modules) would
+# collide with Python's standard-library ``code`` module that pytest imports,
+# which is exactly the "import file mismatch" collection error.
+_spec = importlib.util.spec_from_file_location(
+    "stage_07_code", os.path.join(_THIS_DIR, "code.py")
 )
-_mod = _ilu.module_from_spec(_spec)
-_sys.modules["code"] = _mod
-_spec.loader.exec_module(_mod)
-from code import Mat, Value
+_code = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_code)
+Mat, Value = _code.Mat, _code.Value
 
 
 EPS = 1e-6
