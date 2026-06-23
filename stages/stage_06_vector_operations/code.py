@@ -32,21 +32,20 @@ class Vec:
 
     def __init__(self, data: Iterable[Scalar]) -> None:
         """Store ``data`` as a list of ``Value``, wrapping non-``Value`` entries."""
-        self.data: List[Stage5_Value] = []
-        raise NotImplementedError("TODO: wrap data into a list of Value")
+        self.data = [x if isinstance(x, Stage5_Value) else Stage5_Value(x) for x in data]
 
     # --- container protocol ---
     def __len__(self) -> int:
         """Number of elements in the vector."""
-        raise NotImplementedError("TODO")
+        return len(self.data)
 
     def __getitem__(self, i: int) -> Stage5_Value:
         """Return the i-th ``Value`` (no copy)."""
-        raise NotImplementedError("TODO")
+        return self.data[i]
 
     def __iter__(self):
         """Iterate over the underlying ``Value`` scalars."""
-        raise NotImplementedError("TODO")
+        return self.data.__iter__()
 
     def __repr__(self) -> str:
         return f"Vec({[v.data for v in self.data]})"
@@ -54,39 +53,49 @@ class Vec:
     # --- elementwise ops (Vec op Vec, or Vec op scalar broadcast) ---
     def __add__(self, other: "Vec | Scalar") -> "Vec":
         """Elementwise add; ``other`` is an equal-length ``Vec`` or a broadcast scalar."""
-        raise NotImplementedError("TODO: elementwise add with scalar broadcast")
+        other = other if isinstance(other, Vec) else Vec([other] * len(self))
+        assert len(self) == len(other)
+        return Vec(a + b for (a, b) in zip(self.data, other.data))
 
     def __sub__(self, other: "Vec | Scalar") -> "Vec":
         """Elementwise subtract (see ``__add__`` for broadcast/length rules)."""
-        raise NotImplementedError("TODO")
+        other = other if isinstance(other, Vec) else Vec([other] * len(self))
+        assert len(self) == len(other)
+        return Vec(a - b for (a, b) in zip(self.data, other.data))
 
     def __mul__(self, other: "Vec | Scalar") -> "Vec":
         """Elementwise (Hadamard) multiply (see ``__add__`` for the rules)."""
-        raise NotImplementedError("TODO")
+        other = other if isinstance(other, Vec) else Vec([other] * len(self))
+        assert len(self) == len(other)
+        return Vec(a * b for (a, b) in zip(self.data, other.data))
 
     # reflected scalar ops: scalar OP vec
     def __radd__(self, other: Scalar) -> "Vec":
         """Return ``other + self`` (commutative)."""
-        raise NotImplementedError("TODO")
+        return self + other
 
     def __rmul__(self, other: Scalar) -> "Vec":
         """Return ``other * self`` (commutative)."""
-        raise NotImplementedError("TODO")
+        return self * other
 
     def __rsub__(self, other: Scalar) -> "Vec":
         """Return ``other - self`` (e.g. ``10 - vec``)."""
-        raise NotImplementedError("TODO")
+        return Vec([other] * len(self)) - self
 
     # --- reductions (return a scalar Value) ---
     def dot(self, other: "Vec") -> Stage5_Value:
         """Dot product ``sum_i self[i] * other[i]`` as one ``Value``; ValueError if lengths differ."""
-        raise NotImplementedError("TODO: dot product from Value ops")
+        return (self * other).sum()
 
     def sum(self) -> Stage5_Value:
         """Return ``sum_i self[i]`` as a single ``Value``."""
-        raise NotImplementedError("TODO")
+        assert len(self) >= 1
+        total = self[0]
+        for i in range(1, len(self)):
+            total += self[i]
+        return total
 
     # --- elementwise activation ---
     def relu(self) -> "Vec":
         """Elementwise ReLU; return a new ``Vec`` using stage_05 ``Value.relu()``."""
-        raise NotImplementedError("TODO")
+        return Vec(x.relu() for x in self)
