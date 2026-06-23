@@ -33,13 +33,11 @@ class Value(Stage4_Value):
 
     def __add__(self, other: Union["Value", Number]) -> "Value":
         """Return self + other via stage_04's __add__, re-tagged as stage-06 Value."""
-        # TODO: delegate to super().__add__, then re-bless the result's class
-        raise NotImplementedError
+        return super(Value, self).__add__(other)
 
     def __mul__(self, other: Union["Value", Number]) -> "Value":
         """Return self * other via stage_04's __mul__, re-tagged as stage-06 Value."""
-        # TODO: delegate to super().__mul__, then re-bless the result's class
-        raise NotImplementedError
+        return super(Value, self).__mul__(other)
 
     # New primitive ops. Each builds a Value and installs a _backward closure
     # that accumulates into inputs with += (never =).
@@ -50,25 +48,38 @@ class Value(Stage4_Value):
         The forward + ``_backward`` (d/dx = n*x**(n-1)) already live in stage_03;
         here just delegate to super() and re-bless so results chain as stage-06.
         """
-        # TODO: delegate to super().__pow__, then re-bless the result's class
-        raise NotImplementedError
+        return super(Value, self).__pow__(n)
 
     def tanh(self) -> "Value":
         """Return tanh(self). Local rule: dt/dx = 1 - tanh(x)**2."""
-        # TODO: implement the forward + backward pass for tanh
-        raise NotImplementedError
+        out = self._make(math.tanh(self.data), (self,), "tanh")
+
+        def _backward():
+            self.grad += out.grad * (1 - math.tanh(self.data)**2)
+
+        out._backward = _backward
+        return out
 
     def exp(self) -> "Value":
         """Return exp(self). Local rule: de/dx = exp(x)."""
-        # TODO: implement the forward + backward pass for exp
-        raise NotImplementedError
+        out = self._make(math.exp(self.data), (self,), "exp")
+
+        def _backward():
+            self.grad += out.grad * math.exp(self.data)
+
+        out._backward = _backward
+        return out
 
     def relu(self) -> "Value":
         """Return ReLU(self) = max(0, self). Local rule: dr/dx = 1 if x > 0 else 0."""
-        # TODO: implement the forward + backward pass for relu
-        raise NotImplementedError
+        out = self._make(max(self.data, 0.0), (self,), "relu")
+
+        def _backward():
+            self.grad += out.grad * (1.0 if self.data > 0.0 else 0.0)
+
+        out._backward = _backward
+        return out
 
     def __repr__(self) -> str:
         """Return e.g. ``Value(data=2.0, grad=4.0)``."""
-        # TODO: implement the grad-aware repr
-        raise NotImplementedError
+        return f"Value(data={self.data}, grad={self.grad})"
