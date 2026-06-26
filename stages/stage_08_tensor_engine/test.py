@@ -206,6 +206,84 @@ def test_array_relu_backward():
     assert np.allclose(x.grad, [0.0, 0.0, 1.0, 1.0])
 
 
+# --------------------------------------------------------------------------- #
+# elementwise transcendentals on NON-scalar arrays
+# --------------------------------------------------------------------------- #
+# These must work elementwise at full shape, not just on 0-d tensors. A
+# `math.tanh`/`math.exp`/`math.log` implementation passes the scalar gradchecks
+# above but raises "only 0-dimensional arrays can be converted to Python
+# scalars" the moment a real (n,) input arrives (e.g. a Neuron's tanh over a
+# batch). Use np.tanh / np.exp / np.log so the forward + local grad broadcast.
+def test_array_tanh_forward_backward():
+    x = Tensor([-1.0, 0.0, 2.0])
+    z = x.tanh()
+    assert np.allclose(z.data, np.tanh(x.data))
+    z.backward()
+    assert np.allclose(x.grad, 1.0 - np.tanh(x.data) ** 2)
+    assert x.grad.shape == x.data.shape
+
+
+def test_array_exp_forward_backward():
+    x = Tensor([-1.0, 0.5, 1.5])
+    z = x.exp()
+    assert np.allclose(z.data, np.exp(x.data))
+    z.backward()
+    # d/dx exp(x) = exp(x)
+    assert np.allclose(x.grad, np.exp(x.data))
+    assert x.grad.shape == x.data.shape
+
+
+def test_array_log_forward_backward():
+    x = Tensor([0.5, 1.0, 3.0])
+    z = x.log()
+    assert np.allclose(z.data, np.log(x.data))
+    z.backward()
+    # d/dx log(x) = 1/x
+    assert np.allclose(x.grad, 1.0 / x.data)
+    assert x.grad.shape == x.data.shape
+
+
+def test_2d_tanh_forward_backward():
+    x = Tensor([[-1.0, 0.0], [0.5, 2.0]])
+    z = x.tanh()
+    assert np.allclose(z.data, np.tanh(x.data))
+    z.backward()
+    assert np.allclose(x.grad, 1.0 - np.tanh(x.data) ** 2)
+    assert x.grad.shape == x.data.shape
+
+
+# --------------------------------------------------------------------------- #
+# 0-d scalar operand broadcasts into an (n,)/(2-d) tensor
+# --------------------------------------------------------------------------- #
+# A Neuron stores its bias as a 0-d Tensor and computes `z = x @ w + b`. For a
+# batched input `x @ w` is (batch,), so `(batch,) + 0-d` must broadcast and the
+# bias must collect the summed upstream grad. A strict equal-shape `_at_shape`
+# assert rejects this even though the single-example `() + 0-d` case slips
+# through, so only a batched/array test catches the gap.
+def test_scalar_tensor_broadcasts_into_vector_add():
+    v = Tensor([1.0, 2.0, 3.0])
+    b = Tensor(0.5)  # 0-d
+    z = v + b
+    assert np.allclose(z.data, [1.5, 2.5, 3.5])
+    z.backward()
+    assert np.allclose(v.grad, np.ones(3))
+    # 0-d bias receives the sum of the upstream ones across the broadcast axis.
+    assert np.isclose(float(b.grad), 3.0)
+    assert b.grad.shape == b.data.shape
+
+
+def test_scalar_tensor_broadcasts_into_vector_mul():
+    v = Tensor([1.0, 2.0, 3.0])
+    s = Tensor(2.0)  # 0-d
+    z = v * s
+    assert np.allclose(z.data, [2.0, 4.0, 6.0])
+    z.backward()
+    # dz/dv = s (broadcast), dz/ds = sum(v) over the broadcast axis
+    assert np.allclose(v.grad, [2.0, 2.0, 2.0])
+    assert np.isclose(float(s.grad), 6.0)
+    assert s.grad.shape == s.data.shape
+
+
 def test_2d_chain_backward():
     x = Tensor([[1.0, -2.0], [3.0, 4.0]])
     z = (x * 2.0).relu()
