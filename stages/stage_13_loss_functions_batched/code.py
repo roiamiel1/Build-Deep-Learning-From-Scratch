@@ -52,9 +52,8 @@ def log_softmax(logits) -> "Tensor":
       3. logsumexp = log( sum over axis=1 of exp(shift) ), keepdims -> (B, 1).
       4. return shift - logsumexp.
     """
-    # TODO: implement the 4 steps with axis=1, keepdims=True on the row reductions.
-    #       Do NOT take the shortcut log(softmax(logits)).
-    raise NotImplementedError("log_softmax")
+    m = np.max(logits.data, axis=1, keepdims=True)
+    return (logits - m) - (logits - m).exp().sum(axis=1, keepdims=True).log()
 
 
 def softmax(logits) -> "Tensor":
@@ -67,9 +66,9 @@ def softmax(logits) -> "Tensor":
     As in stage_12, softmax is just exp of log_softmax, so reuse the batched
     log_softmax and inherit its per-row stability.
     """
-    # TODO: exponentiate log_softmax(logits).
-    raise NotImplementedError("softmax")
-
+    logits -= np.max(logits.data, axis=1, keepdims=True)
+    logits_exp = logits.exp()
+    return logits_exp / logits_exp.sum(axis=1, keepdims=True)
 
 def cross_entropy_loss(logits, targets) -> "Tensor":
     """Mean softmax cross-entropy over a BATCH.
@@ -101,4 +100,12 @@ def cross_entropy_loss(logits, targets) -> "Tensor":
     """
     # TODO: lp = log_softmax(logits); build the (B, C) target matrix y from `targets`;
     #       return -(lp * y).sum(axis=1).mean(); let backward() supply the gradient.
-    raise NotImplementedError("cross_entropy_loss")
+    if len(targets.shape) == 1:
+        # this is an index of the right class in each batch entry
+        indices = targets
+        targets = np.zeros((targets.shape[0], logits.shape[1],))
+        for batch_entry in range(targets.shape[0]):
+            targets[batch_entry][indices[batch_entry]] = 1.0
+
+    lp = log_softmax(logits)
+    return -(lp * targets).sum(axis=1, keepdims=True).mean()
