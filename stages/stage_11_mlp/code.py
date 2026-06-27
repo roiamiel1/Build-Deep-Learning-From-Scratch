@@ -55,7 +55,11 @@ class Tensor(Stage8_Tensor):
         Wrap via ``self._make_tensor(...)`` (== ``type(self)(...)``) so a coerced raw
         operand becomes THIS instance's runtime class, keeping a subclass alive across
         the chain (same reason the node-building ops route through ``_make_tensor``)."""
-        raise NotImplementedError("TODO: wrap non-Tensor operands via self._make_tensor(...)")
+        """Return `other` as a Tensor (pass Tensors through, else wrap in Tensor)."""
+        if isinstance(other, Tensor):
+            return other
+
+        return self._make_tensor(other)
 
     @staticmethod
     def _unbroadcast(grad: np.ndarray, shape: Tuple[int, ...]) -> np.ndarray:
@@ -72,12 +76,16 @@ class Tensor(Stage8_Tensor):
         Then ``reshape(shape)`` (no-op after 1&2). Equal shapes pass through.
         E.g. ``(2,3)+(3,)``: ``a`` gets ``grad`` as-is, ``b`` gets ``grad.sum(axis=0)``.
         """
-        # TODO: implement the unbroadcast reduction described above:
-        #   - while grad.ndim > len(shape): grad = grad.sum(axis=0)
-        #   - for each axis i where shape[i] == 1 and grad.shape[i] > 1:
-        #         grad = grad.sum(axis=i, keepdims=True)
-        #   - return grad.reshape(shape)
-        raise NotImplementedError("Tensor._unbroadcast")
+        while grad.ndim > len(shape): 
+            # This is for batching -> where the first axies is the "batch dim", 
+            # we sum along this axis according to the chain rule.
+            grad = grad.sum(axis=0)
+
+        for i in range(len(shape)):
+            if shape[i] == 1 and grad.shape[i] > 1:
+                grad = grad.sum(axis=i, keepdims=True)
+
+        return grad.reshape(shape)
 
     def __add__(self, other: "Operand") -> "Tensor":
         """Broadcasting elementwise add: ``z = self + other``.
@@ -87,9 +95,15 @@ class Tensor(Stage8_Tensor):
         and ``self._unbroadcast(out.grad, other.shape)`` to ``other`` so each
         parent's grad is reduced back to its own shape.  Equal-shaped operands
         reduce to the stage_08 behaviour (unbroadcast is then a no-op)."""
-        # TODO: coerce other; out = self._make_tensor(self.data + other.data, (self, other), "+");
-        #       _backward: each parent.grad += _unbroadcast(out.grad, parent.shape).
-        raise NotImplementedError("Tensor.__add__")
+        other = self._coerce(other)
+        out = self._make_tensor(self.data + other.data, (self, other), "+")
+
+        def _backward():
+            self.grad += Tensor._unbroadcast(out.grad, self.shape)
+            other.grad += Tensor._unbroadcast(out.grad, other.shape)
+
+        out._backward = _backward
+        return out
 
     def __mul__(self, other: "Operand") -> "Tensor":
         """Broadcasting elementwise multiply: ``z = self * other``.
@@ -98,18 +112,24 @@ class Tensor(Stage8_Tensor):
         are ``g * other`` for ``self`` and ``g * self`` for ``other`` (each
         evaluated at the BROADCAST shape), then unbroadcast back to each parent's
         original shape before accumulating."""
-        # TODO: coerce other; out = self._make_tensor(self.data * other.data, (self, other), "*");
-        #       _backward: self.grad  += _unbroadcast(out.grad * other.data, self.shape)
-        #                  other.grad += _unbroadcast(out.grad * self.data,  other.shape).
-        raise NotImplementedError("Tensor.__mul__")
+        other = self._coerce(other)
+        out = self._make_tensor(self.data * other.data, (self, other), "*")
+
+        def _backward():
+            self.grad += Tensor._unbroadcast(out.grad * other.data, self.shape)
+            other.grad += Tensor._unbroadcast(out.grad * self.data,  other.shape)
+
+        out._backward = _backward
+        return out
 
     # NOTE: ``__pow__``, ``relu``, ``tanh``, ``exp``, ``log``, ``reshape`` and
     # ``__matmul__`` are NOT overridden here. stage_08's versions build their
     # child via ``self._make_tensor(...)`` (== ``type(self)(...)``), so when
     # called on a stage_11 instance they already return stage_11 ``Tensor`` nodes
     # -- the subclass survives a chained graph (e.g. ``(x @ W).relu()``) with no
-    # re-implementation needed. Only the broadcasting ``__add__``/``__mul__``
-    # above genuinely change behaviour, so only they are overridden.
+    # re-implementation needed. Their equal-shape (unary / promotion) grads make
+    # stage_08's ``_accumulate`` equivalent to an unbroadcast no-op, so only the
+    # broadcasting ``__add__``/``__mul__`` above genuinely change behaviour.
 
 
 # ``Tensor`` (above) is this stage's public broadcasting-capable autodiff node.
@@ -143,10 +163,11 @@ class Dense(Stage10_Dense):
         bias: bool = True,
         seed: Optional[int] = None,
     ) -> None:
-        # TODO: build W (n_in, n_out) and, if bias, b (n_out,) as THIS stage's
-        #       broadcasting Tensor (stage_10 builds them as the stage_08 engine,
-        #       whose add can't broadcast the bias row).
-        raise NotImplementedError("Dense.__init__")
+        self.W = Tensor(np.random.default_rng(seed=seed).random((n_in, n_out)))
+        if bias:
+            self.b = Tensor(np.zeros(n_out,))
+        else:
+            self.b = None
 
     def __call__(self, x) -> "Tensor":
         """Forward affine pass; ``(n_in,) -> (n_out,)`` or ``(B, n_in) -> (B, n_out)``.
@@ -154,17 +175,20 @@ class Dense(Stage10_Dense):
         Bias add is now a plain broadcast: ``(B, n_out) + (n_out,)`` for a batch,
         ``(n_out,) + (n_out,)`` for a single input -- both handled by this stage's
         unbroadcasting ``Tensor.__add__``."""
-        # TODO: z = x @ self.W; if bias, add it with plain ``z + self.b``. The
-        #       inherited __matmul__ builds z via self._make_tensor, so z is a
-        #       stage_11 Tensor and ``z + b`` keys on this stage's broadcasting
-        #       __add__ (no unbound-call trick needed).
-        raise NotImplementedError("Dense.__call__")
+        z = x @ self.W
 
+        if self.b is not None:
+            z += self.b
+
+        return z
 
 class MLP:
     """A multilayer perceptron: ``Dense`` layers + activations. sizes
     ``[n_in, ..., n_out]`` builds len(sizes)-1 Dense layers; activation follows
     each hidden layer, out_activation the last (each in {"tanh","relu","none"})."""
+
+    _NONE_ACTIVATION = str(None).lower()
+    _VALID_ACTIVATIONS = ["tanh", "relu", _NONE_ACTIVATION]
 
     def __init__(
         self,
@@ -173,36 +197,53 @@ class MLP:
         out_activation: str = "none",
         seed: Optional[int] = None,
     ) -> None:
-        # TODO: validate args; build the Dense layers (per-layer derived seeds).
-        raise NotImplementedError("MLP.__init__")
+        assert len(sizes) > 1
+        assert activation in MLP._VALID_ACTIVATIONS
+        assert out_activation in MLP._VALID_ACTIVATIONS
+
+        self.layers = []
+        self.activation = activation
+        self.out_activation = out_activation
+        
+        rng = np.random.default_rng(seed=seed)
+
+        for (i, j) in zip(sizes[:-1], sizes[1:]): # for sizes [a, b, c] it will be [(a, b), (b, c), ...]
+            self.layers.append(Dense(i, j, seed=rng.integers(2**32)))
 
     @staticmethod
     def _apply_activation(z: "Stage8_Tensor", name: str) -> "Stage8_Tensor":
         """Apply named pointwise activation via the Tensor's own methods; raise on unknown name."""
-        # TODO: dispatch "none"/"tanh"/"relu" to z / z.tanh() / z.relu().
-        raise NotImplementedError("MLP._apply_activation")
+        assert name in MLP._VALID_ACTIVATIONS
+
+        if name == MLP._NONE_ACTIVATION:
+            return z
+
+        return getattr(z, name)()
 
     def forward(self, x: "Stage8_Tensor") -> "Stage8_Tensor":
         """Chain layers, applying activation after each (out_activation after the
         last). x ``(n_in,)`` or ``(batch, n_in)`` -> ``(n_out,)`` / ``(batch, n_out)``."""
-        # TODO: chain layers with the right activation per layer.
-        raise NotImplementedError("MLP.forward")
+        assert isinstance(x, Tensor)
+
+        for l in self.layers:
+            x = l(x)
+            x = MLP._apply_activation(x, self.activation)
+
+        return MLP._apply_activation(x, self.out_activation)
 
     def __call__(self, x: "Stage8_Tensor") -> "Stage8_Tensor":
         """Alias for :meth:`forward`."""
-        # TODO: delegate to forward.
-        raise NotImplementedError("MLP.__call__")
+        assert isinstance(x, Tensor)
+        return self.forward(x)
 
     def parameters(self) -> List["Stage8_Tensor"]:
         """Return every learnable parameter from every layer, flattened in layer order."""
-        # TODO: flatten each layer's parameters().
-        raise NotImplementedError("MLP.parameters")
+        return sum((l.parameters() for l in self.layers), [])
 
     def zero_grad(self) -> None:
         """Reset the gradient of every parameter to zeros."""
-        # TODO: zero each parameter's grad.
-        raise NotImplementedError("MLP.zero_grad")
+        for l in self.layers:
+            l.zero_grad()
 
     def __repr__(self) -> str:
-        # TODO: summarize sizes and activations.
-        raise NotImplementedError("MLP.__repr__")
+        return f"MLP([{', '.join(f'({l.n_in}, {l.n_out})' for l in self.layers)}], activation='{self.activation}', out_activation='{self.out_activation}')"
