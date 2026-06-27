@@ -47,7 +47,13 @@ class Tensor(Stage11_Tensor):
 
         ``x.sum()`` of ``[[1,2],[3,4]]`` -> ``10``; after backward ``x.grad`` is all 1s.
         """
-        raise NotImplementedError("Tensor.sum")
+        out = self._make_tensor(np.sum(self.data, axis=axis, keepdims=keepdims), (self,), "sum")
+
+        def _backward():
+            self.grad += out.grad
+
+        out._backward = _backward
+        return out
 
     def mean(self, axis: Optional[Union[int, Tuple[int, ...]]] = None,
              keepdims: bool = False) -> "Tensor":
@@ -60,23 +66,38 @@ class Tensor(Stage11_Tensor):
 
         ``x.mean()`` of ``[[1,2],[3,4]]`` -> ``2.5``; after backward ``x.grad`` is all 1/4.
         """
-        raise NotImplementedError("Tensor.mean")
+        out = self._make_tensor(np.mean(self.data, axis=axis, keepdims=keepdims), (self,), "sum")
 
+        N = 1.0
+        if axis is None:
+             # All axis are reduced - so the mean work on all variables.
+            N = self.data.size
+        elif isinstance(axis, int):
+            # Only one axis is reduced, so mean is calculated on the count of elements in this axis
+            N = self.data.shape[axis]
+        elif isinstance(axis, tuple):
+            # Multiple axis are reduced, so mean is calculated on the count of elements in all these axis
+            for a in axis:
+                N *= self.data.shape[a]
+        else:
+            assert False
+
+        def _backward():
+            self.grad += out.grad / N
+
+        out._backward = _backward
+        return out
 
 def mse_loss(pred, target) -> "Tensor":
     """Mean squared error: scalar Tensor L = mean( (pred - target)**2 )."""
-    # TODO: implement MSE using Tensor ops and .mean()
-    raise NotImplementedError("mse_loss")
-
+    return ((pred - target) ** 2).mean()
 
 def mae_loss(pred, target) -> "Tensor":
     """Mean absolute error: scalar Tensor L = mean( |pred - target| ).
 
     Build abs from Tensor ops (e.g. |d| = relu(d) + relu(-d)); never hand-write grads.
     """
-    # TODO: implement MAE using Tensor ops and .mean()
-    raise NotImplementedError("mae_loss")
-
+    return ((pred - target).relu() + (target - pred).relu()).mean()
 
 def log_softmax(logits) -> "Tensor":
     """Log-softmax of ONE logit vector: (C,) raw scores -> (C,) log-probs log(p_c).
@@ -91,8 +112,8 @@ def log_softmax(logits) -> "Tensor":
     Steps: m off the data (constant); shift = logits - m; lse = log(sum(exp(shift)));
     return shift - lse.
     """
-    # TODO: implement the steps. Do NOT take the shortcut log(softmax(logits)).
-    raise NotImplementedError("log_softmax")
+    m = np.max(logits.data)
+    return (logits - m) - (logits - m).exp().sum().log()
 
 
 def softmax(logits) -> "Tensor":
@@ -101,9 +122,9 @@ def softmax(logits) -> "Tensor":
     Since p = exp(log p), this is just exp of log_softmax -- reuse it and inherit its
     overflow-safety.
     """
-    # TODO: exponentiate log_softmax(logits).
-    raise NotImplementedError("softmax")
-
+    logits -= np.max(logits.data)
+    logits_exp = logits.exp()
+    return logits_exp / logits_exp.sum()
 
 def cross_entropy_loss(logits, target) -> "Tensor":
     """Softmax cross-entropy for ONE example -> scalar loss.
@@ -122,6 +143,11 @@ def cross_entropy_loss(logits, target) -> "Tensor":
 
     Turning `target` into y is yours to design.
     """
-    # TODO: lp = log_softmax(logits); express `target` as a length-C vector y;
-    #       return -(lp * y).sum().
-    raise NotImplementedError("cross_entropy_loss")
+    if isinstance(target, int):
+        # this is an index of the right class
+        i = target
+        target = np.zeros((logits.shape[0],))
+        target[i] = 1.0
+
+    lp = log_softmax(logits)
+    return -(lp * target).sum()
