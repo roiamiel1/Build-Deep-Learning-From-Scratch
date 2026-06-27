@@ -24,6 +24,10 @@ pytest stage_xx/test.py
 
 Each stage builds on the code from prior stages (e.g. `Value` from `stage_05`, `Tensor` from `stage_08`).
 
+## Solutions
+
+Reference implementations for every stage live on the **`solutions`** branch. Check it out (`git checkout solutions`) only after you've attempted a stage yourself — the whole point is that *you* write every gradient. The `main` branch ships skeletons only.
+
 ## The 35 stages
 
 | # | Stage | What you build |
