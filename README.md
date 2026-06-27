@@ -66,3 +66,7 @@ Each stage builds on the code from prior stages (e.g. `Value` from `stage_05`, `
 ## Expected effort
 
 Roughly **150-250 hours** end to end, depending on background.
+
+## Community
+
+Questions, help, and updates: [r/pytorch_from_scratch](https://www.reddit.com/r/pytorch_from_scratch/).
