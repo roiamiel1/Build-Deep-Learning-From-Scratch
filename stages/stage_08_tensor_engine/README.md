@@ -134,8 +134,8 @@ Every differentiable op has the **same five-line shape**; learn it once. Example
 
 ```python
 def __mul__(self, other):
-    other = Tensor._coerce(other)              # 1. wrap raw numbers/arrays as Tensors
-    out = Tensor(self.data * other.data,       # 2. forward: NumPy does the array math
+    other = self._coerce(other)                # 1. wrap raw numbers/arrays as Tensors
+    out = self._make_tensor(self.data * other.data, # 2. forward: NumPy does the array math
                  _prev=(self, other), _op="*") # 3. record parents + op name for the graph
     def _backward():                           # 4. local gradient → each parent
         Tensor._accumulate(self,  out.grad * other.data)   # dL/dself = g ⊙ other

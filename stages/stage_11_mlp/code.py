@@ -49,10 +49,13 @@ class Tensor(Stage8_Tensor):
     ``__neg__`` and the reflected forms) compose the primitives, so they too stay
     stage_11 with no new ``_backward``.
     """
-    @staticmethod
-    def _coerce(other: Operand) -> "Tensor":
-        """Return `other` as a Tensor (wrap raw numbers/arrays; pass Tensors through)."""
-        raise NotImplementedError("TODO: wrap non-Tensor operands in Tensor(...)")
+    def _coerce(self, other: Operand) -> "Tensor":
+        """Return `other` as a Tensor (wrap raw numbers/arrays; pass Tensors through).
+
+        Wrap via ``self._make_tensor(...)`` (== ``type(self)(...)``) so a coerced raw
+        operand becomes THIS instance's runtime class, keeping a subclass alive across
+        the chain (same reason the node-building ops route through ``_make_tensor``)."""
+        raise NotImplementedError("TODO: wrap non-Tensor operands via self._make_tensor(...)")
 
     @staticmethod
     def _unbroadcast(grad: np.ndarray, shape: Tuple[int, ...]) -> np.ndarray:
