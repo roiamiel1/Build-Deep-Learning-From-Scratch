@@ -276,7 +276,7 @@ def test_zero_grad():
         np.array([[0.5, -1.0, 2.0], [1.0, 0.0, -0.5]]),  # ndarray, batched
     ],
 )
-def test_accepts_raw_non_tensor_input(raw_x):
+def test_deny_raw_non_tensor_input(raw_x):
     """``Dense.__call__`` must coerce a raw list/ndarray into a Tensor before
     ``x @ self.W``. Without that coercion the matmul gets a bare list/ndarray
     (no autodiff ``@`` against a Tensor) and raises instead of returning a
@@ -285,7 +285,10 @@ def test_accepts_raw_non_tensor_input(raw_x):
     X = np.asarray(raw_x, dtype=float)
     expected = X @ as_array(layer.W) + as_array(layer.b)
 
-    y = layer(raw_x)  # raw input, NOT wrapped in a Tensor
+    with pytest.raises((AssertionError, TypeError)):
+        layer(raw_x)
+
+    y = layer(Tensor(raw_x))
 
     assert hasattr(y, "data"), "Dense must return a Tensor for raw input"
     assert as_array(y).shape == expected.shape, "raw-input output shape mismatch"

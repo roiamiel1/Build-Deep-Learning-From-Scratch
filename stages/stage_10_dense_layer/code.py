@@ -33,7 +33,7 @@ class Dense:
         # TODO: init leaf Tensors W (n_in, n_out) and b (n_out,); store dims/bias.
         raise NotImplementedError("Dense.__init__")
 
-    def __call__(self, x) -> "Tensor":
+    def __call__(self, x: "Tensor") -> "Tensor":
         """Forward affine pass; (n_in,) -> (n_out,) or (B, n_in) -> (B, n_out).
 
         Bias is expanded to (B, n_out) via Tensor ops (no broadcasting backward
