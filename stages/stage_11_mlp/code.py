@@ -56,6 +56,10 @@ class Tensor(Stage8_Tensor):
       forms) are inherited -- they compose the primitives above, so they stay
       stage_11 with no new ``_backward``.
     """
+    @staticmethod
+    def _coerce(other: Operand) -> "Tensor":
+        """Return `other` as a Tensor (wrap raw numbers/arrays; pass Tensors through)."""
+        raise NotImplementedError("TODO: wrap non-Tensor operands in Tensor(...)")
 
     @staticmethod
     def _unbroadcast(grad: np.ndarray, shape: Tuple[int, ...]) -> np.ndarray:
