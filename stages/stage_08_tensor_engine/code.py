@@ -43,6 +43,18 @@ class Tensor:
         (data, grad zeros, _prev, _op, _backward no-op leaf)."""
         raise NotImplementedError("TODO: store data/grad/_prev/_op/_backward")
 
+    def _make_tensor(self, *args, **kwargs) -> "Tensor":
+        """Build a result node of THIS instance's runtime class.
+
+        Every node-building op below routes its child construction through here
+        (``self._make_tensor(data, prev, op)``) instead of calling ``Tensor(...)``
+        directly. Because the class is ``type(self)``, a chained graph keeps the
+        most-derived subclass at every node: a later stage that subclasses
+        ``Tensor`` (e.g. stage_11's broadcasting ``Tensor``) inherits every op
+        unchanged and its results are still ITS class -- no op needs re-overriding
+        just to swap the constructor. Signature mirrors ``__init__``."""
+        return type(self)(*args, **kwargs)
+
     @staticmethod
     def _coerce(other: Operand) -> "Tensor":
         """Return `other` as a Tensor (wrap raw numbers/arrays; pass Tensors through)."""
@@ -66,8 +78,9 @@ class Tensor:
         belongs to exactly one input entry. Forward `self.data.reshape(shape)`;
         backward reshape `out.grad` back to `self.data.shape` and accumulate.
         Accepts dims as varargs (`t.reshape(2, 3)`) or one tuple (`t.reshape((2, 3))`),
-        and a `-1` placeholder NumPy infers (`t.reshape(-1)` flattens)."""
-        raise NotImplementedError("TODO: reshape forward + _backward (reshape grad back to self.shape)")
+        and a `-1` placeholder NumPy infers (`t.reshape(-1)` flattens).
+        Build the child via ``self._make_tensor(...)`` so a subclass survives the chain."""
+        raise NotImplementedError("TODO: reshape forward via self._make_tensor + _backward (reshape grad back to self.shape)")
 
     @staticmethod
     def _accumulate(grad_into: "Tensor", incoming: np.ndarray) -> None:
@@ -76,33 +89,35 @@ class Tensor:
         raise NotImplementedError("TODO: sum-to-scalar for 0-d operand, else +=")
 
     # elementwise ops (equal-shaped operands only this stage)
+    # Every op below builds its result via ``self._make_tensor(...)`` (NOT a bare
+    # ``Tensor(...)``) so the node carries the caller's runtime class through the graph.
     def __add__(self, other: Operand) -> "Tensor":
-        """Elementwise add (route both grads through Tensor._accumulate)."""
-        raise NotImplementedError("TODO: implement add + its _backward")
+        """Elementwise add (build via self._make_tensor; route both grads through Tensor._accumulate)."""
+        raise NotImplementedError("TODO: implement add via self._make_tensor + its _backward")
 
     def __mul__(self, other: Operand) -> "Tensor":
-        """Elementwise multiply (route both grads through Tensor._accumulate)."""
-        raise NotImplementedError("TODO: implement mul + its _backward")
+        """Elementwise multiply (build via self._make_tensor; route both grads through Tensor._accumulate)."""
+        raise NotImplementedError("TODO: implement mul via self._make_tensor + its _backward")
 
     def __pow__(self, c: Union[int, float]) -> "Tensor":
-        """Raise to a CONSTANT power. z = self ** c."""
-        raise NotImplementedError("TODO: implement pow-by-constant + its _backward")
+        """Raise to a CONSTANT power. z = self ** c (build via self._make_tensor)."""
+        raise NotImplementedError("TODO: implement pow-by-constant via self._make_tensor + its _backward")
 
     def relu(self) -> "Tensor":
-        """Elementwise ReLU. z = max(0, self)."""
-        raise NotImplementedError("TODO: implement relu + its _backward")
+        """Elementwise ReLU. z = max(0, self) (build via self._make_tensor)."""
+        raise NotImplementedError("TODO: implement relu via self._make_tensor + its _backward")
 
     def tanh(self) -> "Tensor":
-        """Elementwise tanh. z = tanh(self); local grad g * (1 - z**2)."""
-        raise NotImplementedError("TODO: implement tanh + its _backward")
+        """Elementwise tanh. z = tanh(self); local grad g * (1 - z**2) (build via self._make_tensor)."""
+        raise NotImplementedError("TODO: implement tanh via self._make_tensor + its _backward")
 
     def exp(self) -> "Tensor":
-        """Elementwise exp. z = exp(self); local grad g * z."""
-        raise NotImplementedError("TODO: implement exp + its _backward")
+        """Elementwise exp. z = exp(self); local grad g * z (build via self._make_tensor)."""
+        raise NotImplementedError("TODO: implement exp via self._make_tensor + its _backward")
 
     def log(self) -> "Tensor":
-        """Elementwise natural log. z = log(self); local grad g / self."""
-        raise NotImplementedError("TODO: implement log + its _backward")
+        """Elementwise natural log. z = log(self); local grad g / self (build via self._make_tensor)."""
+        raise NotImplementedError("TODO: implement log via self._make_tensor + its _backward")
 
     def __matmul__(self, other: Operand) -> "Tensor":
         """Matrix product z = self @ other (the ``@`` operator).
@@ -116,8 +131,9 @@ class Tensor:
         each 1-D operand to 2-D (left -> (1,n) row, right -> (n,1) column),
         apply the 2-D rule above, then squeeze the inserted axis back out so each
         grad matches its operand's original shape. (No general broadcasting
-        beyond this 1-D<->2-D promotion; that arrives in stage_11.)"""
-        raise NotImplementedError("TODO: matmul + _backward; promote 1-D operands, then G@B.T / A.T@G")
+        beyond this 1-D<->2-D promotion; that arrives in stage_11.)
+        Build the result via ``self._make_tensor(...)`` so a subclass survives the chain."""
+        raise NotImplementedError("TODO: matmul via self._make_tensor + _backward; promote 1-D operands, then G@B.T / A.T@G")
 
     # ops derived from the primitives above (no new _backward)
     def __neg__(self) -> "Tensor":

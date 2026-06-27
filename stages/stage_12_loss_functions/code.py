@@ -35,6 +35,11 @@ class Tensor(Stage11_Tensor):
     stage_08's) and ADDS the two reduction ops the losses need.  A reduction maps
     an array down (optionally along ``axis``) to fewer elements; its backward
     must *re-expand* the upstream grad back over the reduced axes.
+
+    Every inherited node-building op builds its child via ``self._make_tensor``
+    (== ``type(self)``), so ops called on a stage_12 instance return stage_12
+    ``Tensor`` nodes -- a chained graph keeps ``.sum()`` / ``.mean()`` reachable
+    throughout. ``sum`` / ``mean`` below build their result the same way.
     """
 
     def sum(self, axis: Optional[Union[int, Tuple[int, ...]]] = None,
@@ -42,7 +47,9 @@ class Tensor(Stage11_Tensor):
         """Sum along ``axis`` (whole array when ``axis is None``). Returns a graph
         ``Tensor`` node (not a raw number) so ``backward()`` keeps flowing.
 
-        Forward: ``z.data = np.sum(...)``; child with ``_prev=(self,)``, ``_op="sum"``.
+        Forward: ``z = self._make_tensor(np.sum(...), (self,), "sum")`` -- build via
+        ``self._make_tensor`` (== ``type(self)``) so the result keeps THIS stage's
+        Tensor type (with its reductions) through a chain.
         Backward: ``sum`` is many-to-one with coefficient 1, so each input's grad is
         just the upstream grad of the output cell it fed -- i.e. broadcast ``z.grad``
         back to ``self.shape``: ``self.grad += broadcast(z.grad -> self.shape)``.
@@ -63,7 +70,9 @@ class Tensor(Stage11_Tensor):
         (``mse_loss`` is ``((pred - target) ** 2).mean()``): a loss must be a
         per-batch average so its scale doesn't grow with batch size.
 
-        Forward: ``z.data = np.mean(...)``; child ``_prev=(self,)``, ``_op="mean"``.
+        Forward: ``z = self._make_tensor(np.mean(...), (self,), "mean")`` -- build
+        via ``self._make_tensor`` (== ``type(self)``) so the result keeps THIS
+        stage's Tensor type through a chain.
         Backward: ``mean = sum / N`` with N = count of reduced elements (product of
         reduced-axis sizes, or ``self.data.size`` when ``axis is None``). Dividing the
         forward by N divides the backward by N, so it's the ``sum`` backward scaled:
