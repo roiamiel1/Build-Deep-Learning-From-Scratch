@@ -2,8 +2,8 @@
 
 Turns the variance-propagation rule Var(z) = n_in * Var(W) * Var(x) into the
 Xavier/Glorot (tanh/linear) and He/Kaiming (relu) schemes plus a harness that
-measures activation statistics across depth. Imports Dense (stage_10) and Tensor
-(stage_08) as-is; builds samplers and a measurement harness on top.
+measures activation statistics across depth. Imports Dense (stage_11) and Tensor
+(stage_11) as-is; builds samplers and a measurement harness on top.
 """
 
 from __future__ import annotations
@@ -12,14 +12,14 @@ from typing import List, Optional
 
 import numpy as np
 
-# Dense (stage_10) and Tensor (stage_08) via the shared dlfs shim, used as-is.
+# Dense (stage_11) and Tensor (stage_11) via the shared dlfs shim, used as-is.
 from dlfs import stage_import
 
-Stage10_Dense = stage_import("stage_10", "Dense")
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Dense = stage_import("stage_11", "Dense")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 
-Dense = Stage10_Dense
-Tensor = Stage8_Tensor
+Dense = Stage11_Dense
+Tensor = Stage11_Tensor
 
 
 def xavier_uniform(
@@ -50,14 +50,14 @@ def he_uniform(n_in: int, n_out: int, *, seed: Optional[int] = None) -> np.ndarr
     raise NotImplementedError("he_uniform")
 
 
-def init_dense(layer: "Stage10_Dense", W: np.ndarray, b: Optional[np.ndarray] = None) -> None:
-    """Overwrite a stage_10 Dense layer's params in place (swap .data on the same
+def init_dense(layer: "Stage11_Dense", W: np.ndarray, b: Optional[np.ndarray] = None) -> None:
+    """Overwrite a stage_11 Dense layer's params in place (swap .data on the same
     leaf Tensors, reset .grad). W (n_in, n_out), b (n_out,)."""
     # TODO: validate shape, swap .data on the same Tensor objects, reset .grad.
     raise NotImplementedError("init_dense")
 
 
-def _apply_activation(t: "Stage8_Tensor", activation: str) -> "Stage8_Tensor":
+def _apply_activation(t: "Stage11_Tensor", activation: str) -> "Stage11_Tensor":
     """Apply an elementwise activation Tensor-op by name: {"tanh", "relu", "none"}."""
     # TODO: dispatch to the matching Tensor op; raise ValueError on unknown name.
     raise NotImplementedError("_apply_activation")

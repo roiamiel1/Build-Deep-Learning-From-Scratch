@@ -18,7 +18,7 @@ from dlfs import stage_import
 
 Stage28_MultiHeadAttention = stage_import("stage_28", "MultiHeadAttention")
 Stage11_MLP = stage_import("stage_11", "MLP")
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 
 
 class LayerNorm:

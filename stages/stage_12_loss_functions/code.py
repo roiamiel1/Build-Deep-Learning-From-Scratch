@@ -21,21 +21,14 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 # Reuse the autodiff Tensor engine.  We extend the broadcast-capable Tensor from
-# stage_11 when it exists (stage_11 adds broadcasting-correct backward and may
-# export ``class Tensor(Stage8_Tensor)``); otherwise we fall back to the raw
-# stage_08 Tensor.  Either way, THIS stage subclasses the base to add reductions.
+# stage_11 (it adds the broadcasting-correct backward); THIS stage subclasses it
+# to add the ``sum`` / ``mean`` reductions the losses need.
 from dlfs import stage_import
 
-Stage8_Tensor = stage_import("stage_08", "Tensor")
-try:
-    # Prefer stage_11's broadcasting Tensor so reductions sit on top of it.
-    _Base = stage_import("stage_11", "Tensor")
-except ImportError:
-    # stage_11 has not exported a Tensor subclass yet -> build on stage_08.
-    _Base = Stage8_Tensor
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 
 
-class Tensor(_Base):
+class Tensor(Stage11_Tensor):
     """The autodiff ``Tensor`` extended with ``sum`` / ``mean`` reductions.
 
     Subclasses the broadcast-capable base (stage_11's ``Tensor`` if present, else

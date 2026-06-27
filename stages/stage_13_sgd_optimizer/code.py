@@ -10,18 +10,18 @@ from typing import Iterable, List
 
 import numpy as np
 
-# Tensor engine from stage_08 (optimizer only reads .grad / writes .data).
+# Tensor engine from stage_11 (optimizer only reads .grad / writes .data).
 from dlfs import stage_import
 
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 
-Tensor = Stage8_Tensor
+Tensor = Stage11_Tensor
 
 
 class Optimizer:
     """Base class for optimizers: owns a list of parameter Tensors and updates them in place."""
 
-    def __init__(self, params: Iterable["Stage8_Tensor"]) -> None:
+    def __init__(self, params: Iterable["Stage11_Tensor"]) -> None:
         # TODO: materialize `params` into a concrete list (not a one-shot iterable).
         raise NotImplementedError("Optimizer.__init__")
 
@@ -38,7 +38,7 @@ class Optimizer:
 class SGD(Optimizer):
     """Plain stochastic gradient descent: p.data -= lr * p.grad."""
 
-    def __init__(self, params: Iterable["Stage8_Tensor"], lr: float = 0.01) -> None:
+    def __init__(self, params: Iterable["Stage11_Tensor"], lr: float = 0.01) -> None:
         # TODO: validate lr > 0, call super().__init__, store self.lr.
         raise NotImplementedError("SGD.__init__")
 

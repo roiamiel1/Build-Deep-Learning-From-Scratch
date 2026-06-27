@@ -14,23 +14,23 @@ import numpy as np
 from dlfs import stage_import
 
 # Tensor (09) + mytorch optim/data (32) + cross-entropy (13) + Dense (11) + conv tower (25).
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 Stage31_Adam, Stage31_DataLoader, Stage31_Dataset = stage_import(
     "stage_31", "Adam", "DataLoader", "Dataset"
 )
 Stage12_cross_entropy_loss = stage_import("stage_12", "cross_entropy_loss")
-Stage10_Dense = stage_import("stage_10", "Dense")
+Stage11_Dense = stage_import("stage_11", "Dense")
 Stage24_Conv2D, Stage24_MaxPool2D, Stage24_Flatten = stage_import(
     "stage_24", "Conv2D", "MaxPool2D", "Flatten"
 )
 
 # Canonical aliases so downstream code and tests can import the plain names.
-Tensor = Stage8_Tensor
+Tensor = Stage11_Tensor
 cross_entropy_loss = Stage12_cross_entropy_loss
 Adam = Stage31_Adam
 DataLoader = Stage31_DataLoader
 Dataset = Stage31_Dataset
-Dense = Stage10_Dense
+Dense = Stage11_Dense
 Conv2D = Stage24_Conv2D
 MaxPool2D = Stage24_MaxPool2D
 Flatten = Stage24_Flatten
@@ -60,18 +60,18 @@ class BatchNorm2d:
         # TODO: implement eval-mode toggle
         raise NotImplementedError("BatchNorm2d.eval")
 
-    def __call__(self, x: Union["Stage8_Tensor", np.ndarray]) -> "Stage8_Tensor":
+    def __call__(self, x: Union["Stage11_Tensor", np.ndarray]) -> "Stage11_Tensor":
         """Forward on ``(N, C, H, W)`` -> ``(N, C, H, W)``; train uses batch stats
         (reduce over axes (0,2,3)) + updates buffers, eval uses running buffers."""
         # TODO: implement the BatchNorm2d forward + backward closure
         raise NotImplementedError("BatchNorm2d.__call__")
 
-    def forward(self, x) -> "Stage8_Tensor":
+    def forward(self, x) -> "Stage11_Tensor":
         """Alias for :meth:`__call__`."""
         # TODO: delegate to __call__
         raise NotImplementedError("BatchNorm2d.forward")
 
-    def parameters(self) -> List["Stage8_Tensor"]:
+    def parameters(self) -> List["Stage11_Tensor"]:
         """Learnable parameters ``[gamma, beta]`` (buffers excluded)."""
         # TODO: return the learnable parameters
         raise NotImplementedError("BatchNorm2d.parameters")
@@ -175,17 +175,17 @@ class ConvNet:
         # TODO: build the conv stages + dense head; derive flat_dim from spatial size
         raise NotImplementedError("ConvNet.__init__")
 
-    def forward(self, x: Union["Stage8_Tensor", np.ndarray]) -> "Stage8_Tensor":
+    def forward(self, x: Union["Stage11_Tensor", np.ndarray]) -> "Stage11_Tensor":
         """Run a (B,C,H,W) batch -> (B, n_classes) logits (no softmax)."""
         # TODO: implement the forward pass over self.layers
         raise NotImplementedError("ConvNet.forward")
 
-    def __call__(self, x) -> "Stage8_Tensor":
+    def __call__(self, x) -> "Stage11_Tensor":
         """Alias for :meth:`forward`."""
         # TODO: delegate to forward
         raise NotImplementedError("ConvNet.__call__")
 
-    def parameters(self) -> List["Stage8_Tensor"]:
+    def parameters(self) -> List["Stage11_Tensor"]:
         """Every learnable parameter from every sub-layer, in forward order."""
         # TODO: gather parameters from all sub-layers
         raise NotImplementedError("ConvNet.parameters")

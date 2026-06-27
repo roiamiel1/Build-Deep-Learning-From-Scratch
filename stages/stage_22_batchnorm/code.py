@@ -14,7 +14,7 @@ import numpy as np
 # Tensor (09), imported for shape/parity use.
 from dlfs import stage_import
 
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 
 
 class BatchNorm1d:

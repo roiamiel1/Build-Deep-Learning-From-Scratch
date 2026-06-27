@@ -1,4 +1,4 @@
-"""Stage 21: Inverted dropout (train/eval-mode layer) on the stage_08 Tensor.
+"""Stage 21: Inverted dropout (train/eval-mode layer) on the stage_11 Tensor.
 
 Inverted dropout with keep prob ``p``:
     train:  m ~ Bernoulli(p) elementwise, y = (m * x) / p
@@ -13,14 +13,14 @@ from typing import List, Optional, Sequence
 
 import numpy as np
 
-# Reuse prior stages: Tensor (stage_08 autodiff), MLP (stage_11, subclassed).
+# Reuse prior stages: Tensor (stage_11 autodiff), MLP (stage_11, subclassed).
 from dlfs import stage_import
 
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 Stage11_MLP = stage_import("stage_11", "MLP")
 
 # Re-export the engine so downstream stages/tests can import ``Tensor`` here.
-Tensor = Stage8_Tensor
+Tensor = Stage11_Tensor
 
 
 class Dropout:
@@ -31,13 +31,13 @@ class Dropout:
         # TODO: validate 0 < p_keep <= 1; store p_keep, _rng, training=True, mask=None.
         raise NotImplementedError("Dropout.__init__")
 
-    def __call__(self, x) -> "Stage8_Tensor":
+    def __call__(self, x) -> "Stage11_Tensor":
         """Forward: train -> ``x * Tensor(m / p_keep)`` (store scale in self.mask);
         eval -> identity."""
         # TODO: implement the train/eval forward described above.
         raise NotImplementedError("Dropout.__call__")
 
-    def forward(self, x) -> "Stage8_Tensor":
+    def forward(self, x) -> "Stage11_Tensor":
         """Alias for :meth:`__call__`."""
         # TODO: delegate to __call__.
         raise NotImplementedError("Dropout.forward")
@@ -52,7 +52,7 @@ class Dropout:
         # TODO: set eval mode.
         raise NotImplementedError("Dropout.eval")
 
-    def parameters(self) -> List["Stage8_Tensor"]:
+    def parameters(self) -> List["Stage11_Tensor"]:
         """Dropout has no learnable parameters (returns [])."""
         # TODO: implement
         raise NotImplementedError("Dropout.parameters")
@@ -88,13 +88,13 @@ class MLPDropout(Stage11_MLP):
         #   (distinct derived seed each).
         raise NotImplementedError("MLPDropout.__init__")
 
-    def forward(self, x) -> "Stage8_Tensor":
+    def forward(self, x) -> "Stage11_Tensor":
         """Per hidden layer: dense -> activation -> dropout; output: dense ->
         out_activation (no dropout)."""
         # TODO: implement the layered forward described above (no gradients here).
         raise NotImplementedError("MLPDropout.forward")
 
-    def __call__(self, x) -> "Stage8_Tensor":
+    def __call__(self, x) -> "Stage11_Tensor":
         """Alias for :meth:`forward`."""
         # TODO: delegate to forward.
         raise NotImplementedError("MLPDropout.__call__")

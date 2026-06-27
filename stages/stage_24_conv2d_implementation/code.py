@@ -1,5 +1,5 @@
 """Stage 24: Conv2D (im2col + matmul), pooling, and Flatten, built on the
-stage_08 autodiff ``Tensor``. Adds im2col/col2im, Conv2D, MaxPool2D, AvgPool2D,
+stage_11 autodiff ``Tensor``. Adds im2col/col2im, Conv2D, MaxPool2D, AvgPool2D,
 Flatten with hand-wired backward closures.
 """
 
@@ -9,10 +9,10 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
-# Tensor engine from stage_08: Tensor(data, _prev=(), _op="").
+# Tensor engine from stage_11: Tensor(data, _prev=(), _op="").
 from dlfs import stage_import
 
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 
 
 def conv_output_size(in_size: int, k: int, stride: int, pad: int) -> int:
@@ -67,12 +67,12 @@ class Conv2D:
         # TODO: He-init W (std=sqrt(2/(in_channels*k*k))), zero bias if used; store config.
         raise NotImplementedError("Conv2D.__init__")
 
-    def __call__(self, x: Union["Stage8_Tensor", np.ndarray]) -> "Stage8_Tensor":
+    def __call__(self, x: Union["Stage11_Tensor", np.ndarray]) -> "Stage11_Tensor":
         """Forward (N, C_in, H, W) -> (N, C_out, H', W') via im2col + matmul."""
         # TODO: implement forward via im2col + matmul; assign out._backward (+= grads).
         raise NotImplementedError("Conv2D.__call__")
 
-    def parameters(self) -> List["Stage8_Tensor"]:
+    def parameters(self) -> List["Stage11_Tensor"]:
         """Learnable parameters: [W, b] (or [W] when no bias)."""
         # TODO: implement
         raise NotImplementedError("Conv2D.parameters")
@@ -97,7 +97,7 @@ class MaxPool2D:
         # TODO: store kernel_size and stride (default stride = kernel_size).
         raise NotImplementedError("MaxPool2D.__init__")
 
-    def __call__(self, x: Union["Stage8_Tensor", np.ndarray]) -> "Stage8_Tensor":
+    def __call__(self, x: Union["Stage11_Tensor", np.ndarray]) -> "Stage11_Tensor":
         """Forward (N, C, H, W) -> (N, C, H', W'); max over each window. Backward
         routes grad to the cached arg-max (0 elsewhere)."""
         # TODO: implement max pooling forward + cached-argmax backward.
@@ -118,7 +118,7 @@ class AvgPool2D:
         # TODO: store kernel_size and stride (default stride = kernel_size).
         raise NotImplementedError("AvgPool2D.__init__")
 
-    def __call__(self, x: Union["Stage8_Tensor", np.ndarray]) -> "Stage8_Tensor":
+    def __call__(self, x: Union["Stage11_Tensor", np.ndarray]) -> "Stage11_Tensor":
         """Forward (N, C, H, W) -> (N, C, H', W'); mean over each window. Backward
         scatter-ADDs g/(kh*kw) into every covered input position."""
         # TODO: implement average pooling forward + uniform-spread backward.
@@ -135,7 +135,7 @@ class Flatten:
     Backward reshapes the upstream grad straight back to the input shape.
     """
 
-    def __call__(self, x: Union["Stage8_Tensor", np.ndarray]) -> "Stage8_Tensor":
+    def __call__(self, x: Union["Stage11_Tensor", np.ndarray]) -> "Stage11_Tensor":
         """Forward (N, ...) -> (N, prod(...)); backward reshapes grad back."""
         # TODO: implement the flatten forward + reshape-back backward.
         raise NotImplementedError("Flatten.__call__")

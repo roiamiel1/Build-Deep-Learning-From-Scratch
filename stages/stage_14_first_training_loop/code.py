@@ -14,17 +14,17 @@ import numpy as np
 from dlfs import stage_import
 
 # Framework pieces built in earlier stages, re-exported under canonical names.
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 Stage11_MLP = stage_import("stage_11", "MLP")
 Stage12_mse_loss = stage_import("stage_12", "mse_loss")
 Stage13_SGD = stage_import("stage_13", "SGD")
-Stage10_Dense = stage_import("stage_10", "Dense")
+Stage11_Dense = stage_import("stage_11", "Dense")
 
-Tensor = Stage8_Tensor
+Tensor = Stage11_Tensor
 MLP = Stage11_MLP
 mse_loss = Stage12_mse_loss
 SGD = Stage13_SGD
-Dense = Stage10_Dense
+Dense = Stage11_Dense
 
 
 def make_moons(
@@ -46,7 +46,7 @@ def make_spiral(
     raise NotImplementedError("make_spiral")
 
 
-def accuracy(pred: "Stage8_Tensor", y) -> float:
+def accuracy(pred: "Stage11_Tensor", y) -> float:
     """Binary accuracy: fraction where sign(pred) == sign(y) (read-only, off-graph)."""
     # TODO: compute accuracy from sign(pred) vs sign(y)
     raise NotImplementedError("accuracy")

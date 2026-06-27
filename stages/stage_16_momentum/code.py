@@ -13,11 +13,11 @@ import numpy as np
 # Tensor (09), SGD (14).
 from dlfs import stage_import
 
-Stage8_Tensor = stage_import("stage_08", "Tensor")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
 Stage13_SGD = stage_import("stage_13", "SGD")
 
 # Re-export the autodiff Tensor under its canonical public name.
-Tensor = Stage8_Tensor
+Tensor = Stage11_Tensor
 
 
 class SGDMomentum(Stage13_SGD):

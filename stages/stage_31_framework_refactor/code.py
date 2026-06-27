@@ -13,8 +13,8 @@ import numpy as np
 # Tensor (09); Dense (11); losses (13); SGD (14); Adam (18); DataLoader/Dataset (20).
 from dlfs import stage_import
 
-Stage8_Tensor = stage_import("stage_08", "Tensor")
-Stage10_Dense = stage_import("stage_10", "Dense")
+Stage11_Tensor = stage_import("stage_11", "Tensor")
+Stage11_Dense = stage_import("stage_11", "Dense")
 Stage12_cross_entropy_loss, Stage12_mse_loss = stage_import(
     "stage_12", "cross_entropy_loss", "mse_loss"
 )
@@ -23,14 +23,14 @@ Stage17_Adam = stage_import("stage_17", "Adam")
 Stage19_DataLoader, Stage19_Dataset = stage_import("stage_19", "DataLoader", "Dataset")
 
 # Canonical public names re-exported unchanged.
-Tensor = Stage8_Tensor
+Tensor = Stage11_Tensor
 SGD = Stage13_SGD
 Adam = Stage17_Adam
 DataLoader = Stage19_DataLoader
 Dataset = Stage19_Dataset
 
 
-class Parameter(Stage8_Tensor):
+class Parameter(Tensor):
     """A learnable leaf ``Tensor`` (``requires_grad=True``) that Modules recognize."""
 
     def __init__(self, data) -> None:
@@ -98,7 +98,7 @@ class Linear(Module):
         bias: bool = True,
         seed: Optional[int] = None,
     ) -> None:
-        # TODO: build a stage_10 Dense, register its W/b as Parameters on this Module
+        # TODO: build a stage_11 Dense, register its W/b as Parameters on this Module
         raise NotImplementedError("Linear.__init__")
 
     def forward(self, x) -> "Tensor":
