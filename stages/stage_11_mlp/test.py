@@ -32,8 +32,9 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, _ROOT)
 
 # --- Import the things under test, skipping cleanly if not ready yet. --------
-# `code.py` binds `Stage8_Tensor` (stage_08) and `Stage10_Dense` (stage_10) via
-# dlfs.stage_import and defines this stage's `MLP` on top of them.
+# `code.py` binds the prior-stage `Tensor` (stage_08) and `Dense` (stage_10)
+# engines via dlfs.stage_import and defines this stage's broadcasting `Tensor`,
+# `Dense`, and `MLP` on top of them; the tests import only this stage's classes.
 try:
     # --- resolve sibling code.py (avoid stdlib `code` collision) ---
     import importlib.util as _ilu
@@ -47,7 +48,7 @@ try:
     _mod = _ilu.module_from_spec(_spec)
     _sys.modules["code"] = _mod
     _spec.loader.exec_module(_mod)
-    from code import MLP, Stage10_Dense, Stage8_Tensor, Tensor
+    from code import MLP, Dense, Tensor
 except (ImportError, NotImplementedError) as exc:  # pragma: no cover
     pytest.skip(
         f"stage_11 MLP / stage_10 Dense / stage_08 Tensor not importable yet: {exc}",
@@ -69,9 +70,9 @@ def make_tensor(arr, requires_grad=True):
     """Build a Tensor from a numpy array, tolerating different ctor kwargs."""
     arr = np.asarray(arr, dtype=float)
     try:
-        return Stage8_Tensor(arr, requires_grad=requires_grad)
+        return Tensor(arr, requires_grad=requires_grad)
     except TypeError:
-        return Stage8_Tensor(arr)
+        return Tensor(arr)
 
 
 def scalar_out(t):
@@ -110,7 +111,7 @@ def test_layer_count_and_widths():
 def test_every_layer_is_a_dense():
     net = build_net([4, 8, 1], seed=0)
     for layer in net.layers:
-        assert isinstance(layer, Stage10_Dense), "each MLP layer must be a stage_10 Dense"
+        assert isinstance(layer, Dense), "each MLP layer must be a stage_11 Dense"
 
 
 def test_parameters_are_collected_from_all_layers():
@@ -325,9 +326,26 @@ def bcast_tensor(arr, requires_grad=True):
 
 
 def test_tensor_is_broadcasting_subclass():
-    """The exported `Tensor` must be the stage_08 engine extended in this stage."""
-    assert issubclass(Tensor, Stage8_Tensor), (
-        "stage_11 must export a Tensor that subclasses the stage_08 Tensor"
+    """The exported `Tensor` must be a prior-stage engine extended in this stage.
+
+    Don't name the base class (this stage is the boundary that introduces the
+    subclass); instead prove the relationship structurally: `Tensor` has a
+    strict ancestor also named ``Tensor`` (the engine it extends), and it really
+    broadcasts -- differently-shaped operands forward + each grad unbroadcasts
+    back to its own shape, which the base engine refuses.
+    """
+    base = Tensor.__mro__[1]  # immediate ancestor: the engine being extended
+    assert base is not Tensor and base.__name__ == "Tensor", (
+        "stage_11 must export a Tensor that subclasses the prior-stage Tensor"
+    )
+    # Behavioural proof of the extension: (2,3)+(3,) broadcasts and unbroadcasts.
+    a = bcast_tensor(np.ones((2, 3)))
+    b = bcast_tensor(np.ones((3,)))
+    z = a + b
+    assert as_array(z).shape == (2, 3)
+    z.backward()
+    assert as_array(b.grad).shape == (3,), (
+        "the stage_11 Tensor must unbroadcast a (3,) operand's grad back to (3,)"
     )
 
 

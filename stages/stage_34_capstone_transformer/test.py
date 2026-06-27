@@ -47,7 +47,7 @@ try:
     from code import (
         CharTokenizer,
         TransformerLM,
-        Stage8_Tensor,
+        Stage11_Tensor,
         get_batch,
         lm_loss,
         sample,
@@ -59,8 +59,8 @@ except (ImportError, NotImplementedError) as exc:  # pragma: no cover
         allow_module_level=True,
     )
 
-if Stage8_Tensor is None:  # pragma: no cover
-    pytest.skip("stage_08 Tensor not available", allow_module_level=True)
+if Stage11_Tensor is None:  # pragma: no cover
+    pytest.skip("stage_11 Tensor not available", allow_module_level=True)
 
 RNG = np.random.default_rng(35)
 EPS = 1e-5

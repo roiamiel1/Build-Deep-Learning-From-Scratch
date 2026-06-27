@@ -24,7 +24,7 @@ import numpy as np
 import pytest
 
 # ---------------------------------------------------------------------------
-# Load this stage's code.py and the stage_08 Tensor.
+# Load this stage's code.py and the stage_11 Tensor.
 # ---------------------------------------------------------------------------
 _HERE = _os.path.dirname(_os.path.abspath(__file__))
 
@@ -48,7 +48,7 @@ def _load(prefix: str):
 
 
 code = _load("stage_24")
-Tensor = _load("stage_08").Tensor
+Tensor = _load("stage_11").Tensor
 
 EPS = 1e-5
 ATOL = 1e-6
