@@ -37,16 +37,24 @@ class Tensor(Stage8_Tensor):
 
     stage_08 keeps elementwise binary ops to equal-shaped operands and defers
     "general broadcasting gradient reduction to stage_11" -- that is this class.
-    It overrides the elementwise binary ops so that when operands have DIFFERENT
-    but broadcastable shapes, the forward uses NumPy broadcasting and each
-    parent's incoming gradient is *unbroadcast* (summed over the axes that were
-    broadcast, then reshaped) back to that parent's original shape.
 
-    The non-broadcasting primitives (``__pow__``, ``relu``, ``tanh``, ``exp``,
-    ``log``, ``@``) are inherited unchanged from stage_08; the derived ops
-    (``__sub__``, ``__truediv__``, ``__neg__`` and the reflected forms) compose
-    out of the overridden ``__add__``/``__mul__`` and so become broadcasting too
-    without any new ``_backward``.
+    Implement EVERY node-building op here so each builds a stage_11 ``Tensor``
+    directly, rather than inheriting stage_08's ops (which hardcode the base
+    ``Tensor(...)`` constructor). If an op were inherited, a chained graph like
+    ``(x @ W).relu()`` would produce a *stage_08* node mid-chain and silently
+    drop this class's broadcasting ``__add__`` for any later op keyed on it. By
+    re-implementing each op so its result is a stage_11 ``Tensor``, the
+    broadcasting-capable class propagates through the whole graph.
+
+    * Broadcasting binary ops (``__add__``/``__mul__``): forward via NumPy
+      broadcasting, then *unbroadcast* each parent's grad (sum the broadcast
+      axes, reshape) back to its own shape via ``_unbroadcast``.
+    * Non-broadcasting ops (``__pow__``, ``relu``, ``tanh``, ``exp``, ``log``,
+      ``reshape``, ``@``): same math as stage_08, but the result node is built
+      as this class so the subclass survives the chain.
+    * Derived ops (``__sub__``, ``__truediv__``, ``__neg__`` and the reflected
+      forms) are inherited -- they compose the primitives above, so they stay
+      stage_11 with no new ``_backward``.
     """
 
     @staticmethod
@@ -94,6 +102,56 @@ class Tensor(Stage8_Tensor):
         #       _backward: self.grad  += _unbroadcast(out.grad * other.data, self.shape)
         #                  other.grad += _unbroadcast(out.grad * self.data,  other.shape).
         raise NotImplementedError("Tensor.__mul__")
+
+    # Non-broadcasting ops: same math as stage_08, but build the result as THIS
+    # class (Tensor(...) here resolves to stage_11's Tensor) so the subclass
+    # survives a chained graph instead of decaying to a stage_08 node.
+    def __pow__(self, c: Union[int, float]) -> "Tensor":
+        """Raise to a CONSTANT power. z = self ** c (local grad g * c * self**(c-1))."""
+        # TODO: out = Tensor(self.data ** c, (self,), "**");
+        #       _backward: self.grad += out.grad * c * (self.data ** (c - 1.0)).
+        raise NotImplementedError("Tensor.__pow__")
+
+    def relu(self) -> "Tensor":
+        """Elementwise ReLU. z = max(0, self); local grad g * (self > 0)."""
+        # TODO: out = Tensor(np.maximum(self.data, 0.0), (self,), "relu");
+        #       _backward: self.grad += out.grad * (self.data > 0).
+        raise NotImplementedError("Tensor.relu")
+
+    def tanh(self) -> "Tensor":
+        """Elementwise tanh. z = tanh(self); local grad g * (1 - z**2)."""
+        # TODO: out = Tensor(np.tanh(self.data), (self,), "tanh");
+        #       _backward: self.grad += out.grad * (1.0 - np.tanh(self.data) ** 2).
+        raise NotImplementedError("Tensor.tanh")
+
+    def exp(self) -> "Tensor":
+        """Elementwise exp. z = exp(self); local grad g * z."""
+        # TODO: out = Tensor(np.exp(self.data), (self,), "exp");
+        #       _backward: self.grad += out.grad * np.exp(self.data).
+        raise NotImplementedError("Tensor.exp")
+
+    def log(self) -> "Tensor":
+        """Elementwise natural log. z = log(self); local grad g / self."""
+        # TODO: out = Tensor(np.log(self.data), (self,), "log");
+        #       _backward: self.grad += out.grad / self.data.
+        raise NotImplementedError("Tensor.log")
+
+    def reshape(self, *shape) -> "Tensor":
+        """Pure rearrangement; backward reshapes the grad back to self's shape."""
+        # TODO: out = Tensor(self.data.reshape(*shape), (self,), "reshape");
+        #       _backward: self.grad += out.grad.reshape(self.data.shape).
+        raise NotImplementedError("Tensor.reshape")
+
+    def __matmul__(self, other: "Operand") -> "Tensor":
+        """Matrix product z = self @ other; same 1-D<->2-D promotion rule as
+        stage_08 (dL/dA = G@B.T, dL/dB = A.T@G with inserted axes squeezed back
+        out), but the result node is a stage_11 Tensor so the subclass survives
+        the chain (e.g. ``(x @ W) + b`` routes through this class's broadcasting
+        ``__add__`` for the bias)."""
+        # TODO: coerce other; out = Tensor(self.data @ other.data, (self, other), "@");
+        #       promote 1-D operands to 2-D, apply G@B.T / A.T@G, squeeze the
+        #       inserted axes back out, then self.grad += dA; other.grad += dB.
+        raise NotImplementedError("Tensor.__matmul__")
 
 
 # ``Tensor`` (above) is this stage's public broadcasting-capable autodiff node.
