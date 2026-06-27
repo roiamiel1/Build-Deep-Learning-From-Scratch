@@ -31,11 +31,6 @@ class Tensor:
 
     Mirrors stage_05's scalar `Value` API but on whole arrays (one ndarray of
     data and one of grad per node). This is the engine every later stage uses.
-
-    Build result nodes via ``type(self)(...)`` (classmethods: ``cls(...)``), never
-    a hardcoded ``Tensor(...)`` -- so a subclass's overridden op (stage_11's
-    broadcasting backward) propagates through chained graphs instead of decaying
-    back to the base class. Pinned by ``test_ops_preserve_subclass``.
     """
 
     def __init__(
@@ -48,16 +43,14 @@ class Tensor:
         (data, grad zeros, _prev, _op, _backward no-op leaf)."""
         raise NotImplementedError("TODO: store data/grad/_prev/_op/_backward")
 
-    @classmethod
-    def _coerce(cls, other: Operand) -> "Tensor":
+    @staticmethod
+    def _coerce(other: Operand) -> "Tensor":
         """Return `other` as a Tensor (wrap raw numbers/arrays; pass Tensors through)."""
-        # @classmethod + cls(other) so coerced constants take the subclass too.
-        raise NotImplementedError("TODO: pass Tensors through, else wrap via cls(other)")
+        raise NotImplementedError("TODO: wrap non-Tensor operands in Tensor(...)")
 
     @classmethod
     def from_value(cls, v) -> "Tensor":
         """Bridge a stage_05 scalar `Value` into a 0-d `Tensor` leaf (lifts v.data only)."""
-        # Build the leaf via cls(...) so Subclass.from_value(v) yields a Subclass.
         raise NotImplementedError("TODO: implement the Value -> 0-d Tensor leaf bridge")
 
     @property
@@ -74,7 +67,6 @@ class Tensor:
         backward reshape `out.grad` back to `self.data.shape` and accumulate.
         Accepts dims as varargs (`t.reshape(2, 3)`) or one tuple (`t.reshape((2, 3))`),
         and a `-1` placeholder NumPy infers (`t.reshape(-1)` flattens)."""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: reshape forward + _backward (reshape grad back to self.shape)")
 
     @staticmethod
@@ -86,37 +78,30 @@ class Tensor:
     # elementwise ops (equal-shaped operands only this stage)
     def __add__(self, other: Operand) -> "Tensor":
         """Elementwise add (route both grads through Tensor._accumulate)."""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: implement add + its _backward")
 
     def __mul__(self, other: Operand) -> "Tensor":
         """Elementwise multiply (route both grads through Tensor._accumulate)."""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: implement mul + its _backward")
 
     def __pow__(self, c: Union[int, float]) -> "Tensor":
         """Raise to a CONSTANT power. z = self ** c."""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: implement pow-by-constant + its _backward")
 
     def relu(self) -> "Tensor":
         """Elementwise ReLU. z = max(0, self)."""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: implement relu + its _backward")
 
     def tanh(self) -> "Tensor":
         """Elementwise tanh. z = tanh(self); local grad g * (1 - z**2)."""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: implement tanh + its _backward")
 
     def exp(self) -> "Tensor":
         """Elementwise exp. z = exp(self); local grad g * z."""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: implement exp + its _backward")
 
     def log(self) -> "Tensor":
         """Elementwise natural log. z = log(self); local grad g / self."""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: implement log + its _backward")
 
     def __matmul__(self, other: Operand) -> "Tensor":
@@ -132,7 +117,6 @@ class Tensor:
         apply the 2-D rule above, then squeeze the inserted axis back out so each
         grad matches its operand's original shape. (No general broadcasting
         beyond this 1-D<->2-D promotion; that arrives in stage_11.)"""
-        # Build result via type(self)(...), not Tensor(...) -- see class docstring.
         raise NotImplementedError("TODO: matmul + _backward; promote 1-D operands, then G@B.T / A.T@G")
 
     # ops derived from the primitives above (no new _backward)
