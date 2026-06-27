@@ -64,12 +64,8 @@ def as_array(t):
 
 
 def make_tensor(arr):
-    """Build a Tensor from a numpy array, tolerating different ctor kwargs."""
-    arr = np.asarray(arr, dtype=float)
-    try:
-        return Tensor(arr)
-    except TypeError:  # pragma: no cover - defensive for alt signatures
-        return Tensor(arr)
+    """Build a Tensor from a numpy array."""
+    return Tensor(np.asarray(arr, dtype=float))
 
 
 def scalar_out(t):
