@@ -52,7 +52,7 @@ def make_moons(
     y = np.concatenate([np.ones(n_out), -np.ones(n_in)]).astype(np.float64)
 
     X += rng.normal(0.0, noise, size=X.shape)
-    return X, y
+    return Tensor(X), Tensor(y)
 
 
 def make_spiral(
@@ -83,7 +83,7 @@ def make_spiral(
         # Binary labels in {-1, +1}: even arms -> +1, odd arms -> -1.
         y[idx] = 1.0 if c % 2 == 0 else -1.0
 
-    return X, y
+    return Tensor(X), Tensor(y)
 
 
 def accuracy(pred: "Stage12_Tensor", y) -> float:
