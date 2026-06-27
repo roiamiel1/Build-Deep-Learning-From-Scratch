@@ -22,7 +22,6 @@ Tensor = Stage8_Tensor
 
 class Dense:
     """Fully-connected (linear) layer ``Z = X @ W + b`` built on stage_08 Tensor."""
-
     def __init__(
         self,
         n_in: int,
@@ -30,8 +29,19 @@ class Dense:
         bias: bool = True,
         seed: Optional[int] = None,
     ) -> None:
-        # TODO: init leaf Tensors W (n_in, n_out) and b (n_out,); store dims/bias.
-        raise NotImplementedError("Dense.__init__")
+        self.W = Tensor(np.random.default_rng(seed=seed).random((n_in, n_out)))
+        if bias:
+            self.b = Tensor(np.zeros(n_out,))
+        else:
+            self.b = None
+
+    @property
+    def n_in(self):
+        return self.W.shape[0]
+    
+    @property
+    def n_out(self):
+        return self.W.shape[1]
 
     def __call__(self, x: "Tensor") -> "Tensor":
         """Forward affine pass; (n_in,) -> (n_out,) or (B, n_in) -> (B, n_out).
@@ -39,19 +49,30 @@ class Dense:
         Bias is expanded to (B, n_out) via Tensor ops (no broadcasting backward
         until stage_11), e.g. ``ones((B, 1)) @ b.reshape(1, n_out)``.
         """
-        # TODO: implement the forward pass; let Tensor.backward supply gradients.
-        raise NotImplementedError("Dense.__call__")
+        assert isinstance(x, Tensor)
+        batch_size = 0 if x.data.ndim <= 1 else x.shape[0]
+
+        z = x @ self.W
+
+        if self.b is not None:
+            if batch_size > 0:
+                z += Tensor(np.ones((batch_size, 1))) @ self.b.reshape(1, self.n_out)
+            else:
+                z += self.b
+
+        return z
 
     def parameters(self) -> List["Tensor"]:
         """Return learnable params: [W, b] with bias, else [W]."""
-        # TODO: return the parameter list.
-        raise NotImplementedError("Dense.parameters")
+        if self.b is None:
+            return [self.W]
+        else:
+            return [self.W, self.b]
 
     def zero_grad(self) -> None:
         """Reset every parameter's gradient to zeros."""
-        # TODO: zero each parameter's grad.
-        raise NotImplementedError("Dense.zero_grad")
+        for p in self.parameters():
+            p.zero_grad()
 
     def __repr__(self) -> str:
-        # TODO: summarize n_in, n_out, bias.
-        raise NotImplementedError("Dense.__repr__")
+        return f"Dense(n_in={self.n_in}, n_out={self.n_out})"
