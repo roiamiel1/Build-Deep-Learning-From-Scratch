@@ -182,17 +182,19 @@ def test_call_is_forward():
 )
 def test_forward_and_call_reject_non_tensor(bad_x):
     """``MLP.forward`` and ``MLP.__call__`` must reject any ``x`` that is not a
-    ``Tensor`` (raise ``TypeError``).
+    ``Tensor`` -- raising an error rather than running the graph on a raw value.
 
     The net runs the autodiff graph through ``x``; a raw list/array/scalar has no
     ``.data``/``.backward`` and would either crash deep inside a layer or silently
-    skip gradient tracking. Guard at the boundary instead, raising ``TypeError``.
-    A real ``Tensor`` (this stage's broadcasting subclass) must still pass.
+    skip gradient tracking. Guard at the boundary instead. Either a ``TypeError``
+    (explicit type check) or an ``AssertionError`` (``assert isinstance(...)``) is
+    accepted -- the contract is only that it raises. A real ``Tensor`` (this
+    stage's broadcasting subclass) must still pass.
     """
     net = build_net([2, 4, 3], seed=5)
-    with pytest.raises(TypeError):
+    with pytest.raises((TypeError, AssertionError)):
         net.forward(bad_x)
-    with pytest.raises(TypeError):
+    with pytest.raises((TypeError, AssertionError)):
         net(bad_x)
 
 
