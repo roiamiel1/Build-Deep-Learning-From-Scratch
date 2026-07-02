@@ -51,8 +51,18 @@ def accuracy(pred: Union["Tensor", np.ndarray], y: Union["Tensor", np.ndarray]) 
 
     Returns a plain Python ``float`` in ``[0.0, 1.0]``.
     """
-    # TODO: implement the metric described above.
-    raise NotImplementedError("accuracy")
+    if isinstance(pred, Tensor):
+        pred = pred.data.flatten()
+    
+    if isinstance(y, Tensor):
+        y = y.data
+
+    pred = pred.flatten()
+    y = y.flatten()
+
+    result_arr = (np.sign(pred) == np.sign(y)).reshape(-1)
+
+    return float(result_arr.sum() / len(result_arr))
 
 
 # --------------------------------------------------------------------------- #
@@ -87,8 +97,30 @@ def train(
         After ``train`` returns, every parameter's ``.grad`` is all-zeros, so
         the caller can immediately ``backward()`` something else.
     """
-    # TODO: implement the loop per the contract above (the README derives it).
-    raise NotImplementedError("train")
+    assert isinstance(X, Tensor)
+    assert isinstance(y, Tensor)
+
+    if y.data.ndim < X.data.ndim:
+        y = y.reshape(X.shape[0], 1)
+
+    if optimizer is None:
+        optimizer = SGD(model.parameters(), lr=lr)
+
+    loss_history = []
+    accuracy_history = []
+
+    for _ in range(epochs):
+        pred = model(X)
+        loss = mse_loss(pred, y)
+        loss_history.append(float(loss.data))
+        loss.grad = 1.0
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+        accuracy_history.append(accuracy(pred, y))
+    
+    return {"loss": loss_history, "accuracy": accuracy_history}
+
 
 
 # --------------------------------------------------------------------------- #
