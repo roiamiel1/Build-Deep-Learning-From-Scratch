@@ -34,81 +34,71 @@ class Value:
     ``a / b`` know which side is which without the node remembering order.
     """
 
-    def __init__(self, data, _children=(), _op=""):
+    def __init__(self, data, _children=(), _op="", label=""):
         """Store ``data`` as float, init ``grad``, and record graph provenance.
 
         Set ``self.data`` (float), ``self.grad = 0.0``, ``self._prev = set(_children)``,
         ``self._op = _op``, and a no-op ``self._backward = lambda: None``.
         """
-        # TODO: set self.data (float), self.grad (0.0), self._prev (set of _children),
-        # self._op, and self._backward (no-op lambda)
-        raise NotImplementedError
+        self.label = label
+        self.data = float(data)
+        self._prev = set(self._make(child) if not isinstance(child, Value) else child for child in _children)
+        self._op = _op
+        self._backward = lambda: None
+        self.grad = 0.0
 
-    def _make(self, data, _children, _op):
+    def _make(self, data, _children=[], _op=""):
         """Build a result node of THIS class: ``type(self)(data, _children, _op)``.
 
         Using ``type(self)`` (not ``Value``) means a subclass's operators return the
         subclass, so the whole graph is uniform and later stages need no op rewrites.
         """
-        # TODO: return type(self)(data, _children, _op)
-        raise NotImplementedError
+        return type(self)(data, _children, _op) if not isinstance(data, type(self)) else data
 
     def __repr__(self):
         """Return 'Value(data=<x>)'."""
-        # TODO
-        raise NotImplementedError
+        return f'Value(data={self.data})'
 
     def __add__(self, other):
         """self + other; record (self, other) and op '+'. Wrap a number operand."""
-        # TODO: coerce other to Value; return self._make(self.data + other.data,
-        # (self, other), "+")
-        raise NotImplementedError
+        other = self._make(other)
+        return self._make(self.data + other.data, (self, other), '+')
 
     def __mul__(self, other):
         """self * other; record (self, other) and op '*'. Wrap a number operand."""
-        # TODO: coerce other to Value; return self._make(self.data * other.data,
-        # (self, other), "*")
-        raise NotImplementedError
-
+        other = self._make(other)
+        return self._make(self.data * other.data, (self, other), '*')
+    
     def __pow__(self, exponent):
         """self ** exponent (int/float, not Value); record (self,) and op f'**{exponent}'."""
-        # TODO: assert exponent is int/float; return self._make(self.data ** exponent,
-        # (self,), f"**{exponent}")
-        raise NotImplementedError
+        return self._make(self.data ** exponent, (self,), _op=f"**{exponent}")
 
     def __neg__(self):
         """Return -self (as self * -1)."""
-        # TODO
-        raise NotImplementedError
-
+        return self * Value(-1)
+    
     def __sub__(self, other):
         """Return self - other (as self + (-other))."""
-        # TODO
-        raise NotImplementedError
+        return self + (-other)
 
     def __truediv__(self, other):
         """Return self / other (as self * other ** -1)."""
-        # TODO
-        raise NotImplementedError
+        return self * other ** -1
 
     # reflected operators: enable `2 * a`, `1 + a`, `3 - a`, `6 / a`
 
     def __radd__(self, other):
         """Return other + self."""
-        # TODO
-        raise NotImplementedError
-
+        return self + other
+    
     def __rmul__(self, other):
         """Return other * self."""
-        # TODO
-        raise NotImplementedError
+        return self * other
 
     def __rsub__(self, other):
         """Return other - self (as other + (-self))."""
-        # TODO
-        raise NotImplementedError
+        return other + -self
 
     def __rtruediv__(self, other):
         """Return other / self (as other * self ** -1)."""
-        # TODO
-        raise NotImplementedError
+        return other * self ** -1
