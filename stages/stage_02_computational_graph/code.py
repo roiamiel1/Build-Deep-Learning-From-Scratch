@@ -53,21 +53,24 @@ def trace(root):
     """
     _visited = set()
     _terminate = False
-    _discovered = set((root))
+    _discovered = set((root,))
     edges = set()
-    nodes = set()
+    nodes = set((root,))
     while _terminate != True:
+      _buffer = set()
       for node in _discovered:
-          
           if node in _visited: # Terminate on reused nodes
               _terminate = True
 
-          for child in node._children:
-            _discovered.add(child)
-            nodes.add(child)
-            edges.add((node, child))
+          for parent in node._prev:
+            _buffer.add(parent)
+            nodes.add(parent)
+            edges.add((parent, node))
           
           _visited.add(node)
-          _discovered.pop(node)
 
+      _discovered = _discovered.union(_buffer)
+      _discovered = _discovered.difference(_visited)
+      if len(_discovered) == 0:
+         _terminate = True
     return nodes, edges
