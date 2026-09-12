@@ -76,25 +76,19 @@ def trace(root):
     Use a visited set so the DAG walk terminates on reused nodes (e.g. a * a).
     """
     _visited = set()
-    _terminate = False
-    _discovered = set((root,))
     edges = set()
     nodes = set((root,))
-    while _terminate != True:
-      _buffer = set()
-      for node in _discovered:
-          if node in _visited: # Terminate on reused nodes
-              _terminate = True
+    def build_node(node):
+      if node in _visited:
+        return
+      for parent in node._prev:
+        nodes.add(parent)
+        edges.add((parent, node))
+        build_node(parent)
 
-          for parent in node._prev:
-            _buffer.add(parent)
-            nodes.add(parent)
-            edges.add((parent, node))
-          
-          _visited.add(node)
+      _visited.add(node)
 
-      _discovered = _discovered.union(_buffer)
-      _discovered = _discovered.difference(_visited)
-      if len(_discovered) == 0:
-         _terminate = True
+    build_node(root)
     return nodes, edges
+
+
