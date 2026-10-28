@@ -53,7 +53,7 @@ class Value:
         Using ``type(self)`` (not ``Value``) means a subclass's operators return the
         subclass, so the whole graph is uniform and later stages need no op rewrites.
         """
-        return type(self)(data, _children, _op) if not isinstance(data, type(self)) else data
+        return type(self)(data, _children, _op) if not isinstance(data, Value) else data
 
     def __repr__(self):
         """Return 'Value(data=<x>)'."""
@@ -71,6 +71,7 @@ class Value:
     
     def __pow__(self, exponent):
         """self ** exponent (int/float, not Value); record (self,) and op f'**{exponent}'."""
+        assert isinstance(exponent, (float, int)), f"Expected type int or float, got: {type(exponent).__name__}" 
         return self._make(self.data ** exponent, (self,), _op=f"**{exponent}")
 
     def __neg__(self):
