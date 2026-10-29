@@ -55,6 +55,7 @@ class Value(Stage2_Value):
         # TODO: coerce other to Value; out = super().__add__(other) (builds the '+'
         # node); define _backward() doing self.grad += out.grad; other.grad += out.grad;
         # set out._backward = _backward; return out
+        other = super()._make(other)
         out = super().__add__(other)
         def _backward():
             self.grad += out.grad
@@ -67,6 +68,7 @@ class Value(Stage2_Value):
         # TODO: coerce other to Value; out = super().__mul__(other) (builds the '*'
         # node); define _backward() doing self.grad += other.data * out.grad;
         # other.grad += self.data * out.grad; set out._backward; return out
+        other = super()._make(other)
         out = super().__mul__(other)
         def _backward():
             self.grad += other.data * out.grad
