@@ -37,20 +37,36 @@ class Value(Stage4_Value):
 
     def tanh(self) -> "Value":
         """Return tanh(self). Local rule: dt/dx = 1 - tanh(x)**2."""
-        # TODO: implement the forward + backward pass for tanh
-        raise NotImplementedError
+        data = math.tanh(self.data)
+        _return = self._make(data, [self], "tanh")
+        def _backward():
+            self.grad += 1 - (data**2)
+        _return._backward = _backward
+        return _return
+            
 
     def exp(self) -> "Value":
         """Return exp(self). Local rule: de/dx = exp(x)."""
-        # TODO: implement the forward + backward pass for exp
-        raise NotImplementedError
+        data = math.exp(self.data)
+        _return = self._make(data, [self], "exp")
+
+        def _backward():
+            self.grad += data
+
+        _return._backward = _backward
+        return _return
 
     def relu(self) -> "Value":
         """Return ReLU(self) = max(0, self). Local rule: dr/dx = 1 if x > 0 else 0."""
-        # TODO: implement the forward + backward pass for relu
-        raise NotImplementedError
+        data = max(0, self)
+        _return = self._make(data, [self], "relu")
+
+        def _backward():
+            self.grad += 1 if data > 0 else 0
+
+        _return._backward = _backward
+        return _return
 
     def __repr__(self) -> str:
         """Return e.g. ``Value(data=2.0, grad=4.0)``."""
-        # TODO: implement the grad-aware repr
-        raise NotImplementedError
+        return f"Value(data={self.data}, grad={self.grad})"
