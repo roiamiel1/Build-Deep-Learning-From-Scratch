@@ -16,8 +16,6 @@ Allowed tools: Python standard library ONLY.
 
 from dlfs import stage_import
 
-from graphviz import Digraph
-
 # stage_01 Value (extend, do not rewrite)
 Stage1_Value = stage_import("stage_01", "Value")
 
@@ -44,29 +42,6 @@ class Value(Stage1_Value):
     def __repr__(self):
         """Graph-aware debug string, e.g. ``Value(data=3.0, op='+')``."""
         return f"Value(data={self.data}, label='{self.label}', op='{self._op}', _prev={self._prev})"
-
-    
-    def draw_dag(self):
-      dot = Digraph(format='svg', graph_attr={'rankdir': 'LR'}) # LR = left to right
-      
-      nodes, edges = trace(self)
-      for n in nodes:
-        uid = str(id(n))
-        # for any value in the graph, create a rectangular ('record') node for it
-        dot.node(name = uid, label = "{ %s | data %.4f | grad %.4f }" % (n.label, n.data, n.grad), shape='record')
-        if n._op:
-          # if this value is a result of some operation, create an op node for it
-          dot.node(name = uid + n._op, label = n._op)
-          # and connect this node to it
-          dot.edge(uid + n._op, uid)
-
-      for n1, n2 in edges:
-        # connect n1 to the op node of n2
-        dot.edge(str(id(n1)), str(id(n2)) + n2._op)
-
-      return dot
-
-
 
 def trace(root):
     """Walk the graph backward from `root`, returning (nodes, edges).
