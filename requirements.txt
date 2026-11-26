@@ -28,6 +28,6 @@
 # packages below, stop: the concept is meant to be built, not imported.
 # ============================================================================
 
-numpy==1.26.4
+numpy==2.5
 matplotlib==3.8.4
 pytest==8.2.2
