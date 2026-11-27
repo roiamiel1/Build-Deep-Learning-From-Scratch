@@ -82,7 +82,7 @@ def check_gradcheck(name, build, xs):
     for i in range(len(xs)):
         ng = numerical_grad(f, xs, i)
         assert grads[i] == pytest.approx(ng, abs=TOL, rel=1e-4), (
-            f"[{name}] grad mismatch for input {i}: "
+            f"[{name}] grad mismatch for input {i}:{xs[i]} "
             f"analytical={grads[i]:.8f} numerical={ng:.8f}"
         )
 

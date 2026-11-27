@@ -40,7 +40,7 @@ class Value(Stage4_Value):
         data = math.tanh(self.data)
         _return = self._make(data, [self], "tanh")
         def _backward():
-            self.grad += 1 - (data**2)
+            self.grad += (1 - data**2) * _return.grad
         _return._backward = _backward
         return _return
             
@@ -51,18 +51,18 @@ class Value(Stage4_Value):
         _return = self._make(data, [self], "exp")
 
         def _backward():
-            self.grad += data
+            self.grad += data * _return.grad
 
         _return._backward = _backward
         return _return
 
     def relu(self) -> "Value":
         """Return ReLU(self) = max(0, self). Local rule: dr/dx = 1 if x > 0 else 0."""
-        data = max(0, self)
+        data = max(0, self.data)
         _return = self._make(data, [self], "relu")
 
         def _backward():
-            self.grad += 1 if data > 0 else 0
+            self.grad += 1 * _return.grad if data > 0 else 0
 
         _return._backward = _backward
         return _return
